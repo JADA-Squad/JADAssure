@@ -3,15 +3,17 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 
 import { ApiError } from "../../api/client";
 import { useAuth } from "./AuthContext";
+import { DemoAccounts } from "./DemoAccounts";
 
 export function LoginPage() {
-  const { session, login } = useAuth();
+  const { session, restoring, login } = useAuth();
   const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  if (restoring) return <div className="auth-wrap muted">Loading…</div>;
   if (session) {
     const from = (location.state as { from?: string } | null)?.from ?? "/overview";
     return <Navigate to={from} replace />;
@@ -31,7 +33,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="auth-wrap">
+    <div className="auth-wrap with-demo">
       <form className="card auth-card" onSubmit={submit}>
         <div className="brand">
           JAD<span>Assure</span>
@@ -60,6 +62,12 @@ export function LoginPage() {
           New organization? <Link to="/signup">Create one</Link>
         </p>
       </form>
+      <DemoAccounts
+        onPick={(pickedEmail, pickedPassword) => {
+          setEmail(pickedEmail);
+          setPassword(pickedPassword);
+        }}
+      />
     </div>
   );
 }

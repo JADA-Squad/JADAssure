@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 
 import { Placeholder } from "../components/Placeholder";
+import { DataSetupPage } from "../features/data-setup/DataSetupPage";
 
 /** Page element per nav path. Each feature replaces its placeholder when its task lands. */
 export const PAGES: Record<string, ReactElement> = {
@@ -11,13 +12,7 @@ export const PAGES: Record<string, ReactElement> = {
       milestone="M3 (FE-006)"
     />
   ),
-  "/data-setup": (
-    <Placeholder
-      title="Data setup"
-      description="Source connections, import status, mappings and data quality gaps."
-      milestone="M1 (FE-002)"
-    />
-  ),
+  "/data-setup": <DataSetupPage />,
   "/agreements": (
     <Placeholder
       title="Rules & agreements"

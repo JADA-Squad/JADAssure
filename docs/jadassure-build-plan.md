@@ -2,18 +2,22 @@
 
 ## ⏵ Resume here
 
-*Updated 2026-10-26, end of session 2.*
+*Updated 2026-10-26, end of session 3.*
 
-- **Done (Built, awaiting owner checkpoint):** all of **M0**: INFRA-001..003, BE-001..004, FE-001.
-  The stack runs with `docker compose up -d --build`. 71 backend tests pass, and the frontend
-  type-checks and builds. The agent ran the checkpoint in a browser: signup → Overview, role-filtered
-  nav for admin and executive, session survives reload, direct URL to a forbidden area is blocked,
-  1280px layout correct.
-- **In flight:** nothing.
-- **Owner action:** run the **M0 checkpoint** below yourself, then promote the M0 rows to Done on
-  the task board (or report what's wrong).
-- **Exact next action (agent):** start **M1** with **BE-005** (field registry + CSV templates), then
-  BE-006 → BE-008 → BE-007 → BE-011 → BE-009 → DATA-001 → FE-002.
+- **Owner checkpoints pending:** M0 (all rows Built) and M1 (below). Promote rows to Done after
+  your own test.
+- **Built in M1 (awaiting owner checkpoint):** BE-005, BE-006, BE-007, BE-008, BE-009, BE-011.
+  175 backend tests pass. The agent ran the M1 checkpoint in a browser: seeded demo orgs, demo
+  login panel, manual upload with mapping, profile, commit (2 inserted / 1 rejected), error CSV,
+  re-import (0 inserted / 2 unchanged), demo re-sync (0 inserted / 0 updated across 11 types).
+- **In Progress, honestly not finished:**
+  - **FE-002**: everything works except **Run checks now**, which needs BE-010 (M2).
+  - **DATA-001**: datasets, seed and expected values (`demo-data/README.md`) are done.
+    Acceptance needs the M2 engine and rule configs to prove the scenarios, plus the M3 follow-up
+    files for scenario 6.
+- **Exact next action (agent):** start **M2** with **BE-012** (versioned rule configs, seeded per
+  demo org), then BE-013 (matcher) → BE-014..BE-018 → BE-019 → BE-010 (finish FE-002) → BE-020 →
+  FE-003 → FE-004 (read-only). Assert findings against the table in `demo-data/README.md`.
 
 ## Handoff protocol
 
@@ -91,3 +95,4 @@ flowchart LR
 |---|---|---|
 | 2026-10-26 | 1 | Repo created (JADA-Squad/JADAssure, private). Phase 0: requirements (42 FR / 16 GR / 12 NFR), solution design, executive summary, AGENTS.md, task board (48 tasks, all requirement IDs traced both ways), decision 0001, RUNNING.md, this plan. Docker engine not running on dev machine; noted. |
 | 2026-10-26 | 2 | M0 built: Compose stack (db on host 5433 because a local Postgres holds 5432), health endpoint with worker heartbeat, Alembic + canonical model migration (26 tables), pytest harness on a throwaway Postgres DB, AI import-boundary test, signup/login/JWT, permission matrix with route-coverage test, tenant scoping, hash-chained audit with verify, React shell with login/signup and role-aware nav. Fixes along the way: alembic `prepend_sys_path`, circular `rule`↔`rule_version` FK moved to `create_foreign_key`, `.test` emails rejected by validator. Added "view agreements" row to design §3.7. All M0 rows Built. |
+| 2026-10-26 | 3 | M1: field registry + templates; data sources, mapping (saved per source, header/synonym suggestions), profiling, idempotent commit with formula-safe error reports; Postgres job queue + worker with retry; agreements API and the single confirmed-terms query; connector interface + DEMO connector (one-transaction syncs); generated demo datasets for three business types with documented expected findings; seed command and opt-in demo-login panel; Data setup screen. Decision 0002 recorded. Fixes: registry→model attr mismatch caught by test (`version_id`), login page flashed before session restore, demo panel/split layout overflow at narrow widths. FE-002 and DATA-001 remain In Progress (need M2). |

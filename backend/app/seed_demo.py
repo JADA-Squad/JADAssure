@@ -68,7 +68,7 @@ def seed_org(session: Session, spec: DemoOrg) -> str:
         for role, name in DEMO_USERS
     }
     ctx = TenantContext(user_id=users["admin"].id, org_id=org.id, role="admin")
-    source = connectors.create_connector_source(session, ctx, name="Demo connector (DEMO)", connector_key="demo",
+    source = connectors.create_connector_source(session, ctx, name="Demo connector", connector_key="demo",
                                                 config={"dataset": spec.dataset})
     ingestion.create_source(session, ctx, name="Manual uploads")
     batches = connectors.run_sync(session, source, "baseline", users["admin"].id)

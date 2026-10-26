@@ -22,15 +22,25 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 Database migrations run automatically when the `api` container starts (`alembic upgrade head`).
 
-Demo data (DATA-001, milestone M1, not built yet): `docker compose exec api python -m app.seed_demo`.
+Load the three DEMO organizations (synthetic data, idempotent) ✅:
+
+```bash
+docker compose exec api python -m app.seed_demo
+```
+
+With `SHOW_DEMO_ACCOUNTS=true` in `.env` (local demos only), the login page lists every demo
+account. Click one to fill the form. Accounts are `<role>.<org>@example.com` with roles
+admin, analyst, approver, commercial and executive, and orgs northwind, cirrus and ridgeline. The
+shared demo password is `DEMO_PASSWORD` in `backend/app/seed_demo.py`.
 
 ## What runs where ✅
 
 `web` (Vite dev server, port 5173) serves the React app and proxies every `/api/*` request to
 `api` (FastAPI on port 8000, auto-reload on source edits). `api` validates requests, reads and
 writes `db` (Postgres 16; host port **5433**, see gotchas) and will enqueue jobs as rows in the
-`job` table. `worker` (same image, `python -m app.worker`) writes a heartbeat every 2 s and will
-claim jobs from M1 onward. Uploaded files will live in the `documents` volume mounted into both
+`job` table. `worker` (same image, `python -m app.worker`) writes a heartbeat every 2 s and runs
+queued jobs (import commits, connector syncs). `demo-data/` is mounted read-only at `/demo-data`
+for the demonstration connector. Uploaded files will live in the `documents` volume mounted into both
 `api` and `worker`.
 
 ## Configuration that MUST be set ✅
@@ -46,12 +56,19 @@ each org stays on the offline stub until its admin enables the provider (GR-08, 
 
 ## The happy path
 
-Today (M0) ✅:
-1. Open http://localhost:5173 → **Create one** → fill in the organization and your admin account.
-2. You land on **Overview** with the navigation your role allows. Admins see Overview, Data
-   setup, Rules & agreements, Pricing opportunities and Access & settings.
-3. Create more users with `POST /api/users` (Swagger UI at `/api/docs`, **Authorize** with your
-   token). Signing in as each role shows only its areas. The settings screen arrives in M4.
+Today (M1) ✅:
+1. Seed the demo orgs (above), open http://localhost:5173, and click `admin.ridgeline@example.com`
+   in the demo panel → **Sign in**.
+2. **Data setup** → *Demo connector* shows the baseline already loaded. **Sync now** re-syncs it:
+   every record type reports 0 inserted, 0 updated.
+3. **Data setup** → *Manual uploads* → record type **Billable events** → choose
+   `demo-data/ridgeline-supply/manual/shipments-september.csv` → **Upload & check**.
+   Six of eight columns map automatically. Map `Shipment Ref` → `event_id` and `Account` →
+   `customer_id` → **Save mapping & re-check** → **Commit 3 rows**: 2 inserted, 1 rejected
+   (`Qty = n/a`) → **Errors CSV**.
+4. Upload the same file again. The mapping is remembered. Commit: 0 inserted, 2 unchanged, 1 rejected.
+5. Or create your own org with **Create one** on the login page. You land on **Overview** with the
+   navigation your role allows.
 
 Target (end of M5):
 1. Log in as the DEMO admin of *Cirrus Cloud (demo)*.
@@ -89,9 +106,20 @@ scenarios, QA-001) arrives in M5.
   reserved TLDs like `.test` and `.local`.
 - Windows: Vite file watching inside Docker uses polling (`CHOKIDAR_USEPOLLING=true`, set in Compose).
 - After changing `backend/pyproject.toml`, rebuild: `docker compose up -d --build api worker`.
+- **The worker does not auto-reload** (the API does). After editing backend code that jobs run,
+  `docker compose restart worker`. Otherwise jobs run the old code.
+- After changing `.env`, recreate the containers (`docker compose up -d`); `restart` doesn't re-read it.
 
 ## Debugging a job that did nothing
 
-Arrives with BE-008 (M1). Until then the worker only writes heartbeats:
-`docker compose logs worker --tail 50`. `GET /api/health` reports `worker: stale` or `missing`
-if no heartbeat has arrived in 30 s.
+✅ (BE-008)
+
+1. **Data setup → Background jobs** (or `GET /api/jobs?status=failed`) lists failed jobs with a
+   user-safe error. Import failures also show on the import-history row.
+2. `docker compose logs worker --tail 100`. The worker logs job id, kind and outcome. Unexpected
+   errors show the stack trace here; the UI shows only the exception type.
+3. Is a job stuck in `queued`? Check that the worker container is running.
+   `GET /api/health` reports `worker: stale` or `missing` if no heartbeat has arrived in 30 s.
+4. Retry from the UI (**Retry**) or `POST /api/jobs/{id}/retry`. Only failed jobs can be retried.
+5. Did the job succeed but do nothing new? Check the import's counts. `unchanged` means identical
+   rows were already imported from the same data source (decision 0002 D-1).
