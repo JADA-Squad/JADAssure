@@ -97,3 +97,13 @@ class StubProvider:
                 passage=passage, ambiguous=reason is not None, ambiguity_reason=reason,
             ))
         return ExtractionResult(terms=terms)
+
+    def suggest_mapping(self, columns, samples, spec, taken):
+        from app.domains.ai.assist import stub_mapping
+
+        return stub_mapping(columns, spec, taken)
+
+    def summarize_finding(self, facts):
+        from app.domains.ai.assist import stub_summary
+
+        return stub_summary(facts)

@@ -9,7 +9,7 @@ import this package (enforced by test), so AI output can never set a money figur
 import uuid
 from dataclasses import dataclass
 from datetime import date
-from typing import Literal, Protocol
+from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -58,3 +58,12 @@ class AIProvider(Protocol):
     external: bool  # True if document text leaves JADAssure (GR-08)
 
     def extract_terms(self, text: str, ctx: ExtractionContext) -> ExtractionResult: ...
+
+    def suggest_mapping(self, columns: list[str], samples: dict[str, list[str]], spec: Any,
+                        taken: set[str]) -> list[Any]:
+        """Proposed column -> field pairs (ai.assist.MappingSuggestion) for unmapped columns. Never applied."""
+        ...
+
+    def summarize_finding(self, facts: dict[str, Any]) -> str:
+        """Plain-language summary of a finding's existing facts. Never used in calculations."""
+        ...

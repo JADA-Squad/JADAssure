@@ -52,6 +52,11 @@ export function ActionsPanel({ f }: { f: FindingDetail }) {
     onSuccess: done,
     onError: fail,
   });
+  const summarize = useMutation({
+    mutationFn: () => findingsApi.summarize(f.id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["findings", "detail", f.id] }),
+    onError: fail,
+  });
   const busy = assign.isPending || propose.isPending || decide.isPending;
   const myId = session?.me.user.id;
   const canExport = session?.me.capabilities.includes("export_corrections") ?? false;
@@ -221,8 +226,19 @@ export function ActionsPanel({ f }: { f: FindingDetail }) {
       )}
 
       <div className="ai-box">
-        <span className="badge info">AI-generated · not used in calculations</span>{" "}
-        {f.ai_summary ?? <span className="muted">No AI summary. AI assistance is off for this organization.</span>}
+        <div className="row spread">
+          <span className="badge info">AI-generated summary · not used in calculations</span>
+          <button className="btn small" disabled={summarize.isPending} onClick={() => summarize.mutate()}>
+            {summarize.isPending ? "Writing…" : f.ai_summary ? "Regenerate" : "Generate summary"}
+          </button>
+        </div>
+        {f.ai_summary ? (
+          <p style={{ margin: "6px 0 0" }}>{f.ai_summary}</p>
+        ) : (
+          <p className="muted" style={{ margin: "6px 0 0" }}>
+            No summary yet. The figures above come from the calculation, never from this text.
+          </p>
+        )}
       </div>
     </section>
   );

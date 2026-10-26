@@ -99,6 +99,7 @@ export const findingsApi = {
   get: (id: string) => api<FindingDetail>(`/findings/${id}`),
   comment: (id: string, body: string) =>
     api<FindingDetail>(`/findings/${id}/comments`, { method: "POST", body: JSON.stringify({ body }) }),
+  summarize: (id: string) => api<{ provider: string; ai_summary: string }>(`/findings/${id}/summary`, { method: "POST" }),
   assign: (id: string, owner_id: string | null) =>
     api<FindingDetail>(`/findings/${id}/assign`, { method: "POST", body: JSON.stringify({ owner_id }) }),
   propose: (id: string, root_cause_category: string, root_cause: string, note: string) =>

@@ -38,6 +38,10 @@ export function ImportReview({ batch, recordType, onClose }: Props) {
     onError: (e) => setError(e instanceof ApiError ? e.message : "Could not commit the import"),
   });
 
+  const suggest = useMutation({
+    mutationFn: () => dataSetupApi.suggestions(batch.id),
+    onError: (e) => setError(e instanceof ApiError ? e.message : "Could not get suggestions"),
+  });
   const fields = recordType?.fields ?? [];
   const usedTargets = new Set(Object.values(mapping).filter(Boolean));
   const issues = p.fields.filter((f) => f.invalid_count > 0 || (f.required && f.mapped_from && f.empty_count > 0));
@@ -119,6 +123,42 @@ export function ImportReview({ batch, recordType, onClose }: Props) {
             </tbody>
           </table>
         </div>
+        {editable && p.unmapped_columns.length > 0 && (
+          <div className="suggest-box">
+            <div className="row spread">
+              <span>
+                {p.unmapped_columns.length} column{p.unmapped_columns.length === 1 ? " isn't" : "s aren't"} mapped yet.
+              </span>
+              <button className="btn small" disabled={suggest.isPending} onClick={() => suggest.mutate()}>
+                {suggest.isPending ? "Thinking…" : "Suggest mappings"}
+              </button>
+            </div>
+            {suggest.data && (
+              <>
+                <p className="muted" style={{ margin: "6px 0" }}>
+                  <span className="badge info">AI suggestion · {suggest.data.external ? "external AI" : "offline"}</span> Nothing is
+                  applied until you choose it and save.
+                </p>
+                {suggest.data.suggestions.length === 0 && <p className="muted">No confident suggestions.</p>}
+                {suggest.data.suggestions.map((s) => (
+                  <div key={s.column} className="row" style={{ gap: 8 }}>
+                    <span className="mono">{s.column}</span> → <strong>{s.field}</strong>
+                    <span className="muted">
+                      ({Math.round(s.confidence * 100)}% · {s.reason})
+                    </span>
+                    <button
+                      className="btn small"
+                      disabled={mapping[s.column] === s.field}
+                      onClick={() => setMapping({ ...mapping, [s.column]: s.field })}
+                    >
+                      {mapping[s.column] === s.field ? "Applied" : "Apply"}
+                    </button>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        )}
         {editable && (
           <div className="row" style={{ marginTop: 8 }}>
             <button className="btn" disabled={!dirty || save.isPending} onClick={() => save.mutate()}>

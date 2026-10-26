@@ -14,6 +14,7 @@ from app.core import health, jobs_api
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.domains.access.router import auth_router, settings_router, users_router
+from app.domains.ai.router import router as ai_router
 from app.domains.audit.router import router as audit_router
 from app.domains.cases.router import corrections_router
 from app.domains.cases.router import router as findings_router
@@ -89,6 +90,7 @@ def create_app() -> FastAPI:
     app.include_router(findings_router)
     app.include_router(corrections_router)
     app.include_router(recovery_router)
+    app.include_router(ai_router)
     app.include_router(reports_router)
     if settings.frontend_dist_path:
         dist = pathlib.Path(settings.frontend_dist_path).resolve()

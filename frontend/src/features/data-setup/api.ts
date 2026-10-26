@@ -108,6 +108,10 @@ export const dataSetupApi = {
       method: "POST",
       body: JSON.stringify({ stage }),
     }),
+  suggestions: (importId: string) =>
+    api<{ provider: string; external: boolean; suggestions: { column: string; field: string; confidence: number; reason: string }[] }>(
+      `/imports/${importId}/mapping-suggestions`,
+    ),
   jobs: () => api<Job[]>("/jobs?limit=20"),
   retryJob: (jobId: string) => api<Job>(`/jobs/${jobId}/retry`, { method: "POST" }),
 };
