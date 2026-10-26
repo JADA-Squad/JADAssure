@@ -1,7 +1,6 @@
 # ai
 
-**Built (M4):** BE-028. Status: Built, awaiting owner checkpoint. BE-031 (mapping
-suggestions, finding summaries) is Backlog for M5.
+**Built (M4–M5):** BE-028, BE-031. Status: Built, awaiting owner checkpoint.
 
 - `provider.py`: `AIProvider` protocol and the strict `ProposedTerm` / `ExtractionResult` schema.
 - `stub.py`: offline deterministic reader, the default (nothing leaves JADAssure, GR-08).
@@ -9,6 +8,10 @@ suggestions, finding summaries) is Backlog for M5.
   output, server-side fallbacks, refusal / max_tokens handling, document delimited as untrusted).
 - `registry.py`: `provider_for(org.settings)`. "anthropic" applies only after an audited opt-in
   AND with `ANTHROPIC_API_KEY` set; otherwise the stub.
+- `assist.py` + `router.py` (BE-031): `GET /api/imports/{id}/mapping-suggestions` (deterministic
+  value evidence first, then the provider; output filtered to real unmapped columns and free
+  fields; never applied) and `POST /api/findings/{id}/summary` (stored in `ai_summary`, labelled
+  in the UI, audited, read by no calculation). Decision 0008.
 - Proposals only (GR-02). `matching`, `rules`, `cases`, `recovery` and `reporting` must never
   import this package (test-enforced). Decision 0007.
 

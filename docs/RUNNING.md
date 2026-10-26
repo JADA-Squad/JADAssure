@@ -75,7 +75,17 @@ each org stays on the offline stub until its admin enables the provider (GR-08, 
 
 ## The happy path
 
-Today (M4) ✅: contracts and governance (JM demo org)
+Today (M5) ✅: the full journey is in [walkthrough.md](walkthrough.md). New in M5:
+1. As `commercialmanager@beyon.com`, **Pricing opportunities**: two items below the 20% target
+   margin, each with a suggested price and indicative annual uplift. JM shows "no cost data".
+2. As `admin@beyon.com`, upload the manual shipments file (M1 step 3 below), then **Suggest mappings**:
+   `Account → customer_id` and `Shipment Ref → event_id`, applied only when you click **Apply**.
+3. As `financeanalyst@jm.com`, open any finding → **Generate summary**: a summary labelled
+   AI-generated. No figure reads it.
+4. **Overview** shows the recurring count and the prevented-recurrence estimate (after a confirmed
+   finding with a root cause).
+
+M4 (still valid) ✅: contracts and governance (JM demo org)
 1. As `commercialmanager@jm.com`, **Rules & agreements** → *Data strategy SOW* (Orchard) → upload
    `demo-data/northwind-advisory/contracts/orchard-sow-amendment-1.txt`. Three terms are proposed beside
    their passages: 195.00/hour senior rate; 130.00 analyst rate held ("subject to agreement"); 5% discount
@@ -125,27 +135,16 @@ M1 (still valid) ✅:
 5. Or create your own org with **Create one** on the login page. You land on **Overview** with the
    navigation your role allows.
 
-Target (end of M5):
-1. Log in as the DEMO admin of *JM* (`admin@jm.com`).
-2. **Data setup** → the demo source → import baseline files → review the profile → commit.
-3. **Run checks now**. The **Findings** queue fills.
-4. As the DEMO analyst, open a wrong-rate finding → propose with a root cause.
-5. As the DEMO approver, approve. A prepared correction appears in **Recovery**.
-6. Import the follow-up invoice (carries the correction reference). The finding moves to *billed*.
-7. Import the follow-up payment. The finding moves to *recovered*, and **Overview** shows cash recovered.
-8. Re-import the baseline. Totals don't change.
-9. **Agreements** in *JM*: upload the demo contract. The ambiguous term waits for confirmation.
-
 ## Running tests ✅
 
 ```bash
-docker compose exec api pytest                  # backend: ~310 tests, ~6 min
+docker compose exec api pytest                  # backend: ~325 tests, ~6 min
+docker compose exec api pytest -m acceptance    # the eight scenarios only (QA-001), under 1 min
 cd frontend && npm run typecheck && npm run build
 ```
 
 The harness drops and recreates a separate database (`<POSTGRES_DB>_test`) each run and clears
-all tables between tests. It never touches your dev data. `pytest -m acceptance` (the eight
-scenarios, QA-001) arrives in M5.
+all tables between tests. It never touches your dev data.
 
 ## Known environment gotchas ✅
 

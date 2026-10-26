@@ -2,19 +2,21 @@
 
 ## ⏵ Resume here
 
-*Updated 2026-10-26, end of session 8.*
+*Updated 2026-10-26, end of session 9.*
 
-- **Owner checkpoints pending:** M0–M4. Promote rows to Done after your own test.
-- **Built in M4 (awaiting owner checkpoint):** BE-027, BE-028, BE-029, BE-030, BE-032, FE-007,
-  FE-009, and **DATA-001** (all eight scenarios now demonstrable). The agent ran the M4 checkpoint
-  in a browser on JM: upload Orchard amendment → 3 proposed / 2 held / 0 discarded, injection inert;
-  confirm 195 rate, reject discount; re-run → 2 new findings (300, 240); Beyon user gets 404 on a JM
-  finding; audit chain verifies; settings and delete zone behave.
+- **All 48 tasks are Built.** Nothing is Done until the owner promotes it after their own test.
+- **Owner checkpoints pending:** M0–M5. For M5, run `docker compose exec api pytest -m acceptance`
+  (all eight scenarios, under a minute) and follow `docs/walkthrough.md` end to end.
+- **Built in M5:** BE-024 (recurrence + prevented-recurrence estimate), BE-026 + FE-008 (pricing
+  opportunities), BE-031 (AI mapping suggestions + labelled finding summaries), QA-001, DOC-001.
+  The agent checked in a browser: Beyon pricing shows 2 opportunities (Corbel 1,957.50 USD, Maple
+  350.00 CAD), JM shows "no cost data"; Suggest mappings on the Beyon manual upload proposes
+  `Account → customer_id` and `Shipment Ref → event_id`; Generate summary shows a labelled summary;
+  Overview shows prevented recurrence 3,600.00 USD after the 600 correction.
+- **Known gap:** the stock demo data has no later period that repeats a confirmed issue, so the
+  Recurring issue notice is only shown by `tests/test_recurrence.py`, not in the demo UI.
 - **Live site:** Render Blueprint still to be applied by the owner (docs/deployment.md).
-- **Exact next action (agent):** start **M5**: BE-024 (recurrence + prevented-recurrence estimate),
-  BE-026 + FE-008 (pricing opportunities), BE-031 (AI mapping suggestions + labelled finding
-  summaries), then QA-001 (automated acceptance test for all eight scenarios, < 30 s timing) and
-  DOC-001 (walkthrough).
+- **Exact next action:** owner checkpoints and Done promotions. No agent task remains on the board.
 
 ## Handoff protocol
 
@@ -98,3 +100,4 @@ flowchart LR
 | 2026-10-26 | 6 | Demo orgs renamed per owner: **JM** (professional-services + subscription datasets via two demo connector sources) and **Beyon** (distribution). Logins are role-based on each org's domain (admin@, financeanalyst@, financeapprover@, commercialmanager@, executive@ + jm.com / beyon.com). Seed gained `--remove-obsolete` (demo-flagged orgs only; used by start.sh on Render). DATA-001 acceptance wording updated; decision 0005. Verified: dev DB reseeded (old demo orgs removed, non-demo org kept), JM analyst sees 6 findings totalling 4,530.00 USD. |
 | 2026-10-26 | 7 | M3: workflow per design §2.5 with row locks, separation of duties and server-computed available actions; terminal-state immutability trigger; root-cause categories; prepared corrections (JA-<org>-0001) with CSV/JSON export; recovery reconcile (billed from referenced invoices, cash only from allocations to them, capped, idempotent) queued after imports; DEMO-only billing/payment simulation; six outcome figures + trend + root causes API; finding actions panel, Recovery tracker and Overview (emphasis chart after palette validation rejected orange+black). Fixes: same-transaction timeline order (clock_timestamp), Postgres GROUP BY with bound to_char format, missing accessible names on action forms. Decision 0006. |
 | 2026-10-26 | 8 | M4: contract upload (PDF/DOCX/TXT, signature checks, sha256, DocumentStore, text extraction); AI provider interface with offline stub default and Claude adapter (claude-opus-5-5, structured output, fallbacks) behind an audited opt-in + key; proposed-term extraction with verbatim-passage verification and ambiguity flags; confirm/edit/reject with audit; settings (schedule, provider, retention purge) and org data deletion with tombstone; Rules & agreements and Access & settings screens; Orchard demo hours for scenario 4. Fixes: alembic constraint double-prefix, transient Windows file lock during scripted edits (retry), stale container env for ANTHROPIC_MODEL (recreate, not restart), users table overflow. Decision 0007. |
+| 2026-10-26 | 9 | M5: recurrence flagged at check-run time and a prevented-recurrence estimate on Overview; pricing opportunities from confirmed contract price vs cost with a configurable target margin; AI mapping suggestions (deterministic value evidence first, provider second, filtered, never auto-applied) and labelled, audited finding summaries; QA-001 acceptance test for all eight scenarios with NFR-04 timing; docs/walkthrough.md. Fixes found in the browser: two quick Apply clicks lost one mapping (stale state, now functional updates); after sign-out the next user landed on the previous user's page; unit prices shown as 12.5. Decision 0008. |

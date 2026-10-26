@@ -1,8 +1,8 @@
 # recovery
 
-**Built (M3):** BE-023. Status: Built, awaiting owner checkpoint. BE-024 (root-cause
-recurrence and prevented-recurrence estimate) is Backlog for M5. Root causes are already captured
-at proposal.
+**Built (M3–M5):** BE-023, BE-024. Status: Built, awaiting owner checkpoint. Root causes are
+captured at proposal (required). Recurrence is flagged by the check run (`rules/engine.py`,
+`recurrence_of_id`) and the prevented-recurrence estimate lives in `reporting` (decision 0008).
 
 - `service.py`: `reconcile()` matches invoices carrying a correction reference (billed) and
   allocations to them (cash, capped at the correction, GR-04). Recovery events are unique per
