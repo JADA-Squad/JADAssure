@@ -22,16 +22,28 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 Database migrations run automatically when the `api` container starts (`alembic upgrade head`).
 
-Load the three DEMO organizations (synthetic data, idempotent) ✅:
+Load the DEMO organizations **JM** and **Beyon** (synthetic data, idempotent) ✅:
 
 ```bash
-docker compose exec api python -m app.seed_demo
+docker compose exec api python -m app.seed_demo --remove-obsolete
 ```
 
+`--remove-obsolete` deletes demo-flagged orgs from earlier seeds (e.g. Northwind/Cirrus/Ridgeline).
+It never touches orgs that aren't flagged demo.
+
 With `SHOW_DEMO_ACCOUNTS=true` in `.env` (local demos only), the login page lists every demo
-account. Click one to fill the form. Accounts are `<role>.<org>@example.com` with roles
-admin, analyst, approver, commercial and executive, and orgs northwind, cirrus and ridgeline. The
-shared demo password is `DEMO_PASSWORD` in `backend/app/seed_demo.py`.
+account. Click one to fill the form. Logins follow the role, on each org's domain:
+
+| Role | JM | Beyon |
+|---|---|---|
+| Administrator | `admin@jm.com` | `admin@beyon.com` |
+| Finance analyst | `financeanalyst@jm.com` | `financeanalyst@beyon.com` |
+| Finance approver | `financeapprover@jm.com` | `financeapprover@beyon.com` |
+| Commercial manager | `commercialmanager@jm.com` | `commercialmanager@beyon.com` |
+| Executive viewer | `executive@jm.com` | `executive@beyon.com` |
+
+The shared demo password is `DEMO_PASSWORD` in `backend/app/seed_demo.py`. These are demo logins
+only; no email is ever sent to these addresses.
 
 ## Live deployment
 
@@ -64,19 +76,18 @@ each org stays on the offline stub until its admin enables the provider (GR-08, 
 ## The happy path
 
 Today (M2) ✅: findings
-1. Sign in as `analyst.cirrus@example.com` (demo panel) → **Findings** → **Run checks now**.
-   After a few seconds: 4 findings, potential 1,410.00 USD. Incorrect rate 600.00 (March) and
-   three missed increases of 270.00 (Jul–Sep).
+1. Sign in as `financeanalyst@jm.com` (demo panel) → **Findings** → **Run checks now**.
+   After a few seconds: 6 findings, potential 4,530.00 USD. Unbilled hours 2,160.00 and 960.00,
+   incorrect rate 600.00 (March), and three missed increases of 270.00 (Jul–Sep).
 2. Click a finding: reason, recommended action, side-by-side evidence (agreed / delivered / billed),
    the calculation with its inputs, rule version, timeline. Add a comment.
 3. **Run checks now** again: same 4 findings, "0 new". No duplicates.
-4. Northwind (`analyst.northwind@…`): 2 unbilled findings, 2,160.00 and 960.00. Ridgeline: 2 expired
-   discounts (375.00, 187.50) and 2 out-of-policy credits (750.00, 120.00). The full expected list
-   is in `demo-data/README.md`.
+4. Beyon (`financeanalyst@beyon.com`): 2 expired discounts (375.00, 187.50) and 2 out-of-policy
+   credits (750.00, 120.00). The full expected list is in `demo-data/README.md`.
 5. Admins run checks from **Data setup**. Analysts run them from **Findings**.
 
 M1 (still valid) ✅:
-1. Seed the demo orgs (above), open http://localhost:5173, and click `admin.ridgeline@example.com`
+1. Seed the demo orgs (above), open http://localhost:5173, and click `admin@beyon.com`
    in the demo panel → **Sign in**.
 2. **Data setup** → *Demo connector* shows the baseline already loaded. **Sync now** re-syncs it:
    every record type reports 0 inserted, 0 updated.
@@ -90,7 +101,7 @@ M1 (still valid) ✅:
    navigation your role allows.
 
 Target (end of M5):
-1. Log in as the DEMO admin of *Cirrus Cloud (demo)*.
+1. Log in as the DEMO admin of *JM* (`admin@jm.com`).
 2. **Data setup** → the demo source → import baseline files → review the profile → commit.
 3. **Run checks now**. The **Findings** queue fills.
 4. As the DEMO analyst, open a wrong-rate finding → propose with a root cause.
@@ -98,7 +109,7 @@ Target (end of M5):
 6. Import the follow-up invoice (carries the correction reference). The finding moves to *billed*.
 7. Import the follow-up payment. The finding moves to *recovered*, and **Overview** shows cash recovered.
 8. Re-import the baseline. Totals don't change.
-9. **Agreements** in *Northwind Advisory (demo)*: upload the demo contract. The ambiguous term waits for confirmation.
+9. **Agreements** in *JM*: upload the demo contract. The ambiguous term waits for confirmation.
 
 ## Running tests ✅
 

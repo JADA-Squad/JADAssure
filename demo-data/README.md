@@ -8,20 +8,27 @@ and API (GR-14). Never present it as a live customer integration.
   generator, then re-run `python demo-data/generate.py`. Don't hand-edit the CSVs.
 - CSV headers are the canonical import-template headers, so the demonstration connector (BE-009)
   loads them with no mapping step.
-- `app.seed_demo` creates the three orgs and their users, and loads each `baseline/` folder through
-  the demonstration connector.
+- `app.seed_demo` creates the orgs JM and Beyon and their users, and loads each `baseline/` folder
+  through the demonstration connector.
 
 ## The three business types, one engine
 
-| Dataset | Org | Business type | Billable unit | Billing frequency |
+| Dataset | Demo org | Business type | Billable unit | Billing frequency |
 |---|---|---|---|---|
-| `northwind-advisory` | Northwind Advisory (demo) | professional_services | consultant hours; milestones | monthly; milestone |
-| `cirrus-cloud` | Cirrus Cloud (demo) | subscription_software | seats | monthly (in advance) |
-| `ridgeline-supply` | Ridgeline Supply (demo) | distribution | shipped units | per_event; USD and CAD |
+| `northwind-advisory` | **JM** | professional_services | consultant hours; milestones | monthly; milestone |
+| `cirrus-cloud` | **JM** | subscription_software | seats | monthly (in advance) |
+| `ridgeline-supply` | **Beyon** | distribution | shipped units | per_event; USD and CAD |
 
-The engine treats them identically. Only data and configuration differ (FR-42).
+The engine treats them identically. Only data and configuration differ (FR-42). JM loads two
+datasets through two labelled demo connector sources. The dataset folder names are internal;
+users see the org names JM and Beyon (decision 0005).
+
+Logins follow the role on each org's domain: `admin@`, `financeanalyst@`, `financeapprover@`,
+`commercialmanager@`, `executive@` + `jm.com` or `beyon.com`.
 
 ## Planted discrepancies (expected findings once M2 lands)
+
+The dataset column maps to orgs: northwind and cirrus → **JM**, ridgeline → **Beyon**.
 
 Values are net of tax, in the invoice currency.
 

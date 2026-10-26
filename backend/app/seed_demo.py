@@ -1,19 +1,24 @@
-"""Seed the three DEMO organizations (DATA-001).
+"""Seed the two DEMO organizations, JM and Beyon (DATA-001, decision 0005).
 
-    docker compose exec api python -m app.seed_demo
+    docker compose exec api python -m app.seed_demo [--remove-obsolete]
 
-Creates each demo org (flagged is_demo) with one user per role, a demonstration-connector data
-source loaded with the dataset's baseline files, and an empty "Manual uploads" CSV source.
-Idempotent: an org that already exists is left untouched.
+Each demo org (flagged is_demo) gets one user per role, one demonstration-connector data source
+per dataset loaded with that dataset's baseline files, and an empty "Manual uploads" CSV source.
+JM carries the professional-services and subscription-software datasets; Beyon carries
+distribution. Together they still cover all three business types (FR-42).
 
-All data is synthetic (demo-data/README.md). The shared DEMO_PASSWORD below exists only so local
-demos can sign in. It's listed on the login page only when SHOW_DEMO_ACCOUNTS=true.
+Idempotent: an org that already exists is left untouched. With --remove-obsolete, demo-flagged
+orgs that are no longer in DEMO_ORGS (e.g. the earlier Northwind/Cirrus/Ridgeline demo orgs) are
+deleted first. Orgs that aren't flagged is_demo are never touched.
+
+All data is synthetic (demo-data/README.md). The shared DEMO_PASSWORD below exists only so demos
+can sign in. It's listed on the login page only when SHOW_DEMO_ACCOUNTS=true.
 """
 
 import sys
 from dataclasses import dataclass
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 import app.job_handlers  # noqa: F401
@@ -23,6 +28,7 @@ from app.core.tenancy import TenantContext
 from app.domains.access import service as access
 from app.domains.access.models import Organization
 from app.domains.audit import service as audit
+from app.domains.audit.models import AuditEvent
 from app.domains.connectors import service as connectors
 from app.domains.ingestion import service as ingestion
 from app.domains.rules import config as rules_config
@@ -31,30 +37,55 @@ DEMO_PASSWORD = "jadassure-demo-2026"
 
 
 @dataclass(frozen=True)
+class DemoDataset:
+    folder: str  # demo-data/<folder>
+    source_name: str
+
+
+@dataclass(frozen=True)
 class DemoOrg:
-    dataset: str
     name: str
     business_type: str
-    slug: str
+    domain: str
+    datasets: tuple[DemoDataset, ...]
 
 
 DEMO_ORGS = (
-    DemoOrg("northwind-advisory", "Northwind Advisory (demo)", "professional_services", "northwind"),
-    DemoOrg("cirrus-cloud", "Cirrus Cloud (demo)", "subscription_software", "cirrus"),
-    DemoOrg("ridgeline-supply", "Ridgeline Supply (demo)", "distribution", "ridgeline"),
+    DemoOrg("JM", "professional_services", "jm.com", (
+        DemoDataset("northwind-advisory", "Demo connector: advisory services"),
+        DemoDataset("cirrus-cloud", "Demo connector: platform subscriptions"),
+    )),
+    DemoOrg("Beyon", "distribution", "beyon.com", (
+        DemoDataset("ridgeline-supply", "Demo connector: distribution"),
+    )),
 )
 
-DEMO_USERS = (
-    ("admin", "Avery Admin"),
-    ("analyst", "Ana Analyst"),
-    ("approver", "Parker Approver"),
-    ("commercial", "Cam Commercial"),
-    ("executive", "Eden Executive"),
-)
+# role -> (email local part, display name)
+DEMO_USERS = {
+    "admin": ("admin", "Avery Admin"),
+    "analyst": ("financeanalyst", "Ana Analyst"),
+    "approver": ("financeapprover", "Parker Approver"),
+    "commercial": ("commercialmanager", "Cam Commercial"),
+    "executive": ("executive", "Eden Executive"),
+}
 
 
-def demo_email(role: str, slug: str) -> str:
-    return f"{role}.{slug}@example.com"
+def demo_email(role: str, domain: str) -> str:
+    """e.g. demo_email("analyst", "jm.com") == "financeanalyst@jm.com"."""
+    return f"{DEMO_USERS[role][0]}@{domain}"
+
+
+def remove_obsolete_demo_orgs(session: Session) -> list[str]:
+    """Delete demo-flagged orgs that are no longer part of DEMO_ORGS. Never touches non-demo orgs."""
+    current = {o.name for o in DEMO_ORGS}
+    obsolete = [o for o in session.scalars(select(Organization).where(Organization.is_demo.is_(True)))
+                if o.name not in current]
+    for org in obsolete:
+        # audit_event deliberately has no cascade (FR-41 tombstones); synthetic demo history goes too.
+        session.execute(delete(AuditEvent).where(AuditEvent.org_id == org.id))
+        session.delete(org)  # every other tenant table cascades on org_id
+    session.flush()
+    return [o.name for o in obsolete]
 
 
 def seed_org(session: Session, spec: DemoOrg) -> str:
@@ -64,30 +95,38 @@ def seed_org(session: Session, spec: DemoOrg) -> str:
     audit.record(session, org_id=org.id, actor_id=None, action="organization.created", entity="organization",
                  entity_id=org.id, payload={"business_type": spec.business_type, "is_demo": True})
     users = {
-        role: access.add_user(session, org_id=org.id, email=demo_email(role, spec.slug), name=f"{name} (demo)",
+        role: access.add_user(session, org_id=org.id, email=demo_email(role, spec.domain), name=f"{name} (demo)",
                               role=role, password=DEMO_PASSWORD, actor_id=None)
-        for role, name in DEMO_USERS
+        for role, (_, name) in DEMO_USERS.items()
     }
     ctx = TenantContext(user_id=users["admin"].id, org_id=org.id, role="admin")
-    source = connectors.create_connector_source(session, ctx, name="Demo connector", connector_key="demo",
-                                                config={"dataset": spec.dataset})
     ingestion.create_source(session, ctx, name="Manual uploads")
     rules_config.ensure_rules(session, org.id, spec.business_type, users["admin"].id)
-    batches = connectors.run_sync(session, source, "baseline", users["admin"].id)
-    loaded = sum(b.counts.get("inserted", 0) for b in batches)
-    rejected = sum(b.counts.get("rejected", 0) for b in batches)
+    loaded = rejected = 0
+    for dataset in spec.datasets:
+        source = connectors.create_connector_source(session, ctx, name=dataset.source_name, connector_key="demo",
+                                                    config={"dataset": dataset.folder})
+        batches = connectors.run_sync(session, source, "baseline", users["admin"].id)
+        loaded += sum(b.counts.get("inserted", 0) for b in batches)
+        rejected += sum(b.counts.get("rejected", 0) for b in batches)
     if rejected:
-        raise RuntimeError(f"{spec.dataset}: {rejected} demo rows were rejected; fix demo-data/generate.py")
+        raise RuntimeError(f"{spec.name}: {rejected} demo rows were rejected; fix demo-data/generate.py")
     return f"{spec.name}: created ({org.short_code}), {len(users)} users, {loaded} records loaded"
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = sys.argv[1:] if argv is None else argv
     with new_session() as session:
+        if "--remove-obsolete" in args:
+            removed = remove_obsolete_demo_orgs(session)
+            session.commit()
+            if removed:
+                print(f"Removed obsolete demo orgs: {', '.join(removed)}")
         for spec in DEMO_ORGS:
             print(seed_org(session, spec))
             session.commit()
-    print(f"Demo users: <role>.<org>@example.com (roles: {', '.join(r for r, _ in DEMO_USERS)}; "
-          f"orgs: {', '.join(o.slug for o in DEMO_ORGS)}). Shared password is DEMO_PASSWORD in app/seed_demo.py.")
+    print("Demo users: " + ", ".join(f"{local}@<org domain>" for local, _ in DEMO_USERS.values())
+          + f" for {', '.join(o.domain for o in DEMO_ORGS)}. Shared password is DEMO_PASSWORD in app/seed_demo.py.")
     return 0
 
 

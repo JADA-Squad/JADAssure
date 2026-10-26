@@ -11,17 +11,17 @@ from tests.engine_helpers import run
 from tests.factories import Actor, add_user, signup
 
 
-def _demo_actor(client, role: str, slug: str) -> Actor:
-    res = client.post("/api/auth/login", json={"email": demo_email(role, slug), "password": DEMO_PASSWORD})
+def _demo_actor(client, role: str, domain: str) -> Actor:
+    res = client.post("/api/auth/login", json={"email": demo_email(role, domain), "password": DEMO_PASSWORD})
     body = res.json()
     return Actor(body["access_token"], body["me"]["user"]["id"], body["me"]["organization"]["id"], role, "")
 
 
 def _seeded(client, session):
-    seed()
+    seed([])
     for org in session.scalars(select(Organization)):
         run(org.id, date(2026, 10, 26))
-    return _demo_actor(client, "analyst", "ridgeline")
+    return _demo_actor(client, "analyst", "beyon.com")
 
 
 def test_queue_is_prioritised_and_filterable(client, session):
@@ -79,14 +79,14 @@ def test_detail_has_evidence_calculation_timeline_and_comments(client, session):
 def test_findings_roles_and_isolation(client, session):
     analyst = _seeded(client, session)
     fid = client.get("/api/findings", headers=analyst.headers).json()["items"][0]["id"]
-    cirrus = _demo_actor(client, "approver", "cirrus")
-    assert client.get(f"/api/findings/{fid}", headers=cirrus.headers).status_code == 404
-    assert client.post(f"/api/findings/{fid}/comments", headers=cirrus.headers, json={"body": "x"}).status_code == 404
-    assert {i["customer_name"] for i in client.get("/api/findings", headers=cirrus.headers).json()["items"]} == {
-        "Bluefin Logistics"}
+    jm = _demo_actor(client, "approver", "jm.com")
+    assert client.get(f"/api/findings/{fid}", headers=jm.headers).status_code == 404
+    assert client.post(f"/api/findings/{fid}/comments", headers=jm.headers, json={"body": "x"}).status_code == 404
+    assert {i["customer_name"] for i in client.get("/api/findings", headers=jm.headers).json()["items"]} == {
+        "Bluefin Logistics", "Halcyon Retail Group"}
     for role in ("admin", "executive"):
-        actor = _demo_actor(client, role, "ridgeline")
+        actor = _demo_actor(client, role, "beyon.com")
         assert client.get("/api/findings", headers=actor.headers).status_code == 403
-    assert client.get("/api/findings", headers=_demo_actor(client, "commercial", "ridgeline").headers).status_code == 200
+    assert client.get("/api/findings", headers=_demo_actor(client, "commercial", "beyon.com").headers).status_code == 200
     stranger = signup(client)
     assert client.get("/api/findings", headers=add_user(client, stranger, "analyst").headers).json()["total"] == 0

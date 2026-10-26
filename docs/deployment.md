@@ -23,7 +23,7 @@ GitHub main ──push──▶ Render build (root Dockerfile: React build + Pyt
    and proposes `jadassure-db` and `jadassure`. Click **Apply**.
 4. Wait for the first deploy (5–10 minutes). The service URL looks like
    `https://jadassure-xxxx.onrender.com`. `GET /api/health` should return `"status":"ok"`.
-5. Sign in with a demo account, e.g. `analyst.cirrus@example.com`. The shared demo password is
+5. Sign in with a demo account, e.g. `financeanalyst@jm.com` or `admin@beyon.com`. The shared demo password is
    `DEMO_PASSWORD` in `backend/app/seed_demo.py`, which is visible only to people with repo access.
 
 After that, every `git push` to `main` redeploys automatically (`autoDeploy: true`). Render shows

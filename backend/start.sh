@@ -4,6 +4,6 @@
 set -e
 alembic upgrade head
 if [ "${SEED_DEMO_ON_START:-false}" = "true" ]; then
-  python -m app.seed_demo
+  python -m app.seed_demo --remove-obsolete
 fi
 exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT:-8000}" --proxy-headers --forwarded-allow-ips='*'
