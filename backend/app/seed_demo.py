@@ -25,6 +25,7 @@ from app.domains.access.models import Organization
 from app.domains.audit import service as audit
 from app.domains.connectors import service as connectors
 from app.domains.ingestion import service as ingestion
+from app.domains.rules import config as rules_config
 
 DEMO_PASSWORD = "jadassure-demo-2026"
 
@@ -71,6 +72,7 @@ def seed_org(session: Session, spec: DemoOrg) -> str:
     source = connectors.create_connector_source(session, ctx, name="Demo connector", connector_key="demo",
                                                 config={"dataset": spec.dataset})
     ingestion.create_source(session, ctx, name="Manual uploads")
+    rules_config.ensure_rules(session, org.id, spec.business_type, users["admin"].id)
     batches = connectors.run_sync(session, source, "baseline", users["admin"].id)
     loaded = sum(b.counts.get("inserted", 0) for b in batches)
     rejected = sum(b.counts.get("rejected", 0) for b in batches)
