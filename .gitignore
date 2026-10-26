@@ -28,3 +28,7 @@ dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# Build caches and owner-local notes
+*.tsbuildinfo
+/github-repo-link.txt
