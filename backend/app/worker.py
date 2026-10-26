@@ -1,4 +1,4 @@
-"""Worker process: heartbeat now; job execution arrives with BE-008."""
+"""Worker process: heartbeat plus job execution (INFRA-001, BE-008)."""
 
 import logging
 import os
@@ -9,6 +9,9 @@ from datetime import UTC, datetime
 
 from sqlalchemy.dialects.postgresql import insert
 
+import app.job_handlers  # noqa: F401  (registers handlers)
+import app.model_registry  # noqa: F401
+from app.core import jobs
 from app.core.config import get_settings
 from app.core.db import new_session
 from app.core.logging import configure_logging
@@ -41,8 +44,11 @@ def main() -> None:
     while _running:
         try:
             beat(worker_id)
+            # Run queued jobs back to back, beating between them so long queues don't look stale.
+            while _running and jobs.work_once():
+                beat(worker_id)
         except Exception:
-            log.exception("heartbeat failed")
+            log.exception("worker loop error")
         time.sleep(settings.worker_poll_seconds)
     log.info("worker stopped", extra={"worker_id": worker_id})
 

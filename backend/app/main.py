@@ -2,7 +2,8 @@
 
 from fastapi import FastAPI
 
-from app.core import health
+import app.job_handlers  # noqa: F401  (registers handlers so the API can enqueue every kind)
+from app.core import health, jobs_api
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.domains.access.router import auth_router, users_router
@@ -25,6 +26,7 @@ def create_app() -> FastAPI:
     app.include_router(users_router)
     app.include_router(audit_router)
     app.include_router(ingestion_router)
+    app.include_router(jobs_api.router)
     return app
 
 

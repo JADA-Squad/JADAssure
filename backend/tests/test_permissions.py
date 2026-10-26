@@ -1,5 +1,7 @@
 """BE-003: permission matrix and tenant scoping on every endpoint (FR-03, GR-06)."""
 
+import re
+
 import pytest
 from fastapi.routing import APIRoute
 
@@ -59,7 +61,7 @@ def test_every_non_public_route_requires_authentication(route):
 def test_unauthenticated_requests_are_rejected(client, route):
     if route.path in PUBLIC_ROUTES:
         return
-    path = route.path.replace("{user_id}", "00000000-0000-0000-0000-000000000000")
+    path = re.sub(r"\{[^}]+\}", "00000000-0000-0000-0000-000000000000", route.path)
     method = sorted(route.methods)[0]
     assert client.request(method, path).status_code == 401
 
