@@ -16,6 +16,7 @@ from app.core.config import get_settings
 from app.core.db import new_session
 from app.core.logging import configure_logging
 from app.core.models import WorkerHeartbeat
+from app.domains.rules import engine as rules_engine
 
 log = logging.getLogger("jadassure.worker")
 _running = True
@@ -34,6 +35,13 @@ def beat(worker_id: str) -> None:
         session.commit()
 
 
+def schedule() -> None:
+    """Queue scheduled check runs that are due (FR-10). Cheap; runs every loop."""
+    with new_session() as session:
+        if rules_engine.enqueue_due(session):
+            session.commit()
+
+
 def main() -> None:
     settings = get_settings()
     configure_logging(settings.log_level)
@@ -44,6 +52,7 @@ def main() -> None:
     while _running:
         try:
             beat(worker_id)
+            schedule()
             # Run queued jobs back to back, beating between them so long queues don't look stale.
             while _running and jobs.work_once():
                 beat(worker_id)

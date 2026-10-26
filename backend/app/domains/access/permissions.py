@@ -59,3 +59,14 @@ def require(cap: Cap):
 
     dependency.required_cap = cap  # type: ignore[attr-defined]  (read by the route-coverage test)
     return dependency
+
+
+def require_any(*caps: Cap):
+    """Like `require`, but any one of `caps` suffices."""
+
+    def dependency(ctx: TenantContext = Depends(current_context)) -> TenantContext:
+        if not any(has_cap(ctx.role, c) for c in caps):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Your role does not permit this action")
+        return ctx
+
+    return dependency

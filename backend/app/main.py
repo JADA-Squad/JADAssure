@@ -11,6 +11,7 @@ from app.domains.audit.router import router as audit_router
 from app.domains.connectors.router import router as connectors_router
 from app.domains.contracts.router import router as agreements_router
 from app.domains.rules.router import router as rules_router
+from app.domains.rules.runs_router import router as runs_router
 from app.domains.ingestion.router import imports_router, sources_router
 from app.domains.ingestion.router import router as ingestion_router
 
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
     app.include_router(jobs_api.router)
     app.include_router(agreements_router)
     app.include_router(rules_router)
+    app.include_router(runs_router)
     return app
 
 
