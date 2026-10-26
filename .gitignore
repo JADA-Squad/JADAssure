@@ -1,0 +1,30 @@
+# Owner's local reference documents (decision 0001 D-10) - market memo is commercially sensitive
+/JADAssure-*.pdf
+/JADAssure-*.docx
+/prompt.md
+
+# Secrets
+.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+dist/
+
+# Local data
+/data/
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
