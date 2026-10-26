@@ -5,6 +5,8 @@ from fastapi import FastAPI
 from app.core import health
 from app.core.config import get_settings
 from app.core.logging import configure_logging
+from app.domains.access.router import auth_router, users_router
+from app.domains.audit.router import router as audit_router
 
 
 def create_app() -> FastAPI:
@@ -18,6 +20,9 @@ def create_app() -> FastAPI:
         redoc_url=None,
     )
     app.include_router(health.router)
+    app.include_router(auth_router)
+    app.include_router(users_router)
+    app.include_router(audit_router)
     return app
 
 

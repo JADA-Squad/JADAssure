@@ -47,8 +47,11 @@ def clean_tables(test_database: str) -> Iterator[None]:
         tables = conn.scalars(
             text("SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename <> 'alembic_version'")
         ).all()
-        if tables:
-            conn.execute(text("TRUNCATE " + ", ".join(f'"{t}"' for t in tables) + " RESTART IDENTITY CASCADE"))
+        # DELETE with FK triggers off is far faster than TRUNCATE for the few rows a test writes.
+        conn.execute(text("SET session_replication_role = replica"))
+        for t in tables:
+            conn.execute(text(f'DELETE FROM "{t}"'))
+        conn.execute(text("SET session_replication_role = DEFAULT"))
 
 
 @pytest.fixture

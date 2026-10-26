@@ -337,6 +337,7 @@ ai/
 | Manage users, settings, retention, AI toggle | ✓ | | | | |
 | Data sources, mappings, imports | ✓ | | | | |
 | Upload contracts; confirm/reject terms | ✓ | | | ✓ | |
+| View agreements, terms and rule versions | ✓ | ✓ | ✓ | ✓ | |
 | Edit rule configurations | ✓ | | | | |
 | Run checks now | ✓ | ✓ | | | |
 | View findings & detail | | ✓ | ✓ | ✓ | |
