@@ -6,6 +6,8 @@ calculation.
 """
 
 import uuid
+from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import date
 
 from sqlalchemy import Select, or_, select
@@ -61,3 +63,55 @@ def resolve_terms(
         stmt = stmt.where(or_(CommercialTerm.item_code == item_code, CommercialTerm.item_code.is_(None)))
     terms = list(session.scalars(stmt.order_by(CommercialTerm.effective_from.desc(), CommercialTerm.id)))
     return sorted(terms, key=lambda t: t.item_code is None)
+
+
+def _effective(start: date, end: date | None, on: date) -> bool:
+    return start <= on and (end is None or end >= on)
+
+
+@dataclass
+class TermBook:
+    """In-memory equivalent of `resolve_terms` for a whole org, for check runs (NFR-04).
+
+    Built only from `confirmed_terms` (GR-03); a test keeps its answers identical to resolve_terms.
+    """
+
+    versions: dict[uuid.UUID, list[AgreementVersion]] = field(default_factory=dict)
+    terms: dict[uuid.UUID, list[CommercialTerm]] = field(default_factory=dict)
+    version_no: dict[uuid.UUID, int] = field(default_factory=dict)
+
+    @classmethod
+    def load(cls, session: Session, org_id: uuid.UUID) -> "TermBook":
+        book = cls()
+        versions: dict[uuid.UUID, list[AgreementVersion]] = defaultdict(list)
+        for v in session.scalars(select(AgreementVersion).where(AgreementVersion.org_id == org_id)):
+            versions[v.agreement_id].append(v)
+            book.version_no[v.id] = v.version_no
+        book.versions = {a: sorted(vs, key=lambda v: v.version_no, reverse=True) for a, vs in versions.items()}
+        terms: dict[uuid.UUID, list[CommercialTerm]] = defaultdict(list)
+        for t in session.scalars(confirmed_terms(org_id)):
+            terms[t.agreement_version_id].append(t)
+        book.terms = dict(terms)
+        return book
+
+    def version_on(self, agreement_id: uuid.UUID, on: date) -> AgreementVersion | None:
+        return next((v for v in self.versions.get(agreement_id, []) if _effective(v.effective_from, v.effective_to, on)),
+                    None)
+
+    def terms_on(self, agreement_id: uuid.UUID, on: date, *, item_code: str | None = None,
+                 term_type: str | None = None) -> list[CommercialTerm]:
+        version = self.version_on(agreement_id, on)
+        if version is None:
+            return []
+        found = [
+            t for t in self.terms.get(version.id, [])
+            if _effective(t.effective_from, t.effective_to, on)
+            and (term_type is None or t.term_type == term_type)
+            and (item_code is None or t.item_code in (item_code, None))
+        ]
+        found.sort(key=lambda t: (t.item_code is None, -t.effective_from.toordinal(), str(t.id)))
+        return found
+
+    def first(self, agreement_id: uuid.UUID, on: date, term_type: str, item_code: str | None = None) -> CommercialTerm | None:
+        terms = self.terms_on(agreement_id, on, item_code=item_code, term_type=term_type)
+        return terms[0] if terms else None
