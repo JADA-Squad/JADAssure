@@ -68,6 +68,7 @@ class FindingDetail(FindingListItem):
     proposer_id: uuid.UUID | None
     proposer_name: str | None
     correction: CorrectionRef | None
+    recurrence_of: dict[str, Any] | None
     available_actions: list[str]
     ai_summary: str | None
     first_detected_at: datetime

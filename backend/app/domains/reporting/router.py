@@ -28,6 +28,7 @@ class Counts(BaseModel):
     in_recovery: int
     recovered: int
     rejected: int
+    recurring: int
     total: int
 
 

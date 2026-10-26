@@ -27,12 +27,27 @@ from app.domains.rules.models import CheckRun, Finding, RuleVersion
 
 RUN_JOB = "run_checks"
 REFRESHABLE = ("open", "in_review")
+# Confirmed leakage: a later finding with the same recurrence key is a recurrence (FR-31, BE-024).
+CONFIRMED = ("approved", "billed", "recovered", "closed_no_recovery")
 _UPDATABLE = ("check_type", "also_detected_by", "value", "currency", "confidence", "reason", "recommended_action",
               "calculation", "evidence", "customer_id", "agreement_id", "item_code", "period_start", "period_end")
 
 
 def fingerprint(org_id: uuid.UUID, family: str, anchor_type: str, anchor_id: str) -> str:
     return hashlib.sha256(f"{org_id}|{family}|{anchor_type}|{anchor_id}".encode()).hexdigest()
+
+
+def recurrence_key(f: Any) -> tuple:
+    """Same cause, same customer and term (FR-31): customer, agreement, check type and item."""
+    return (f.customer_id, f.agreement_id, f.check_type, f.item_code)
+
+
+def recurrence_of(confirmed: list[Finding], c: checks.Candidate) -> Finding | None:
+    """The most recent confirmed finding with the same key whose period ended before this one began."""
+    key = recurrence_key(c)
+    earlier = [f for f in confirmed if recurrence_key(f) == key and f.period_end and c.period_start
+               and f.period_end < c.period_start]
+    return max(earlier, key=lambda f: f.period_end, default=None)
 
 
 def evaluate(session: Session, org_id: uuid.UUID, versions: dict[str, RuleVersion], as_of: date) -> tuple[list[checks.Candidate], dict[str, int]]:
@@ -64,15 +79,19 @@ def upsert_findings(session: Session, org_id: uuid.UUID, run: CheckRun, versions
         select(Finding).where(Finding.org_id == org_id, Finding.fingerprint.in_(list(by_fp)))
     )} if by_fp else {}
 
-    stats = {"new": 0, "refreshed": 0, "unchanged": 0, "frozen": 0}
+    stats = {"new": 0, "refreshed": 0, "unchanged": 0, "frozen": 0, "recurrences": 0}
+    confirmed = list(session.scalars(select(Finding).where(Finding.org_id == org_id, Finding.status.in_(CONFIRMED))))
     for fp, c in by_fp.items():
         attrs: dict[str, Any] = {k: getattr(c, k) for k in _UPDATABLE}
         attrs["rule_version_id"] = versions[c.check_type].id
         f = existing.get(fp)
         if f is None:
+            prior = recurrence_of(confirmed, c)
             session.add(Finding(org_id=org_id, fingerprint=fp, family=c.family, status="open",
-                                first_run_id=run.id, last_run_id=run.id, **attrs))
+                                first_run_id=run.id, last_run_id=run.id,
+                                recurrence_of_id=prior.id if prior else None, **attrs))
             stats["new"] += 1
+            stats["recurrences"] += prior is not None
         elif f.status not in REFRESHABLE:
             stats["frozen"] += 1
         else:

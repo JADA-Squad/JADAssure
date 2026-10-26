@@ -164,11 +164,23 @@ def detail(session: Session, ctx: TenantContext, finding_id: uuid.UUID) -> Findi
                                  status=correction.status, amount=correction.amount,
                                  currency=correction.currency) if correction else None,
         available_actions=available_actions(ctx, f),
+        recurrence_of=_recurrence(session, ctx, f),
         ai_summary=f.ai_summary,
         first_detected_at=first_run.created_at if first_run else f.created_at,
         last_checked_at=(last_run.finished_at or last_run.created_at) if last_run else f.updated_at,
         timeline=timeline,
     )
+
+
+def _recurrence(session: Session, ctx: TenantContext, f: Finding) -> dict | None:
+    if f.recurrence_of_id is None:
+        return None
+    prior = session.scalar(scoped(Finding, ctx).where(Finding.id == f.recurrence_of_id))
+    if prior is None:
+        return None
+    return {"id": str(prior.id), "check_type": prior.check_type, "status": prior.status,
+            "period_start": prior.period_start.isoformat() if prior.period_start else None,
+            "root_cause_category": prior.root_cause_category, "root_cause": prior.root_cause}
 
 
 def available_actions(ctx: TenantContext, f: Finding) -> list[str]:
