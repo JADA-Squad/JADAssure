@@ -4,6 +4,7 @@ import { AuthProvider } from "../features/auth/AuthContext";
 import { RequireAuth, RequireRole } from "../features/auth/guards";
 import { LoginPage } from "../features/auth/LoginPage";
 import { SignupPage } from "../features/auth/SignupPage";
+import { FindingDetailPage } from "../features/findings/FindingDetailPage";
 import { Layout } from "./Layout";
 import { NAV_AREAS } from "./nav";
 import { PAGES } from "./routes";
@@ -23,6 +24,14 @@ export function App() {
                 element={<RequireRole roles={area.roles}>{PAGES[area.path]}</RequireRole>}
               />
             ))}
+            <Route
+              path="/findings/:id"
+              element={
+                <RequireRole roles={NAV_AREAS.find((a) => a.path === "/findings")!.roles}>
+                  <FindingDetailPage />
+                </RequireRole>
+              }
+            />
             <Route path="*" element={<Navigate to="/overview" replace />} />
           </Route>
         </Route>

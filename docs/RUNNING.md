@@ -56,7 +56,19 @@ each org stays on the offline stub until its admin enables the provider (GR-08, 
 
 ## The happy path
 
-Today (M1) ✅:
+Today (M2) ✅: findings
+1. Sign in as `analyst.cirrus@example.com` (demo panel) → **Findings** → **Run checks now**.
+   After a few seconds: 4 findings, potential 1,410.00 USD. Incorrect rate 600.00 (March) and
+   three missed increases of 270.00 (Jul–Sep).
+2. Click a finding: reason, recommended action, side-by-side evidence (agreed / delivered / billed),
+   the calculation with its inputs, rule version, timeline. Add a comment.
+3. **Run checks now** again: same 4 findings, "0 new". No duplicates.
+4. Northwind (`analyst.northwind@…`): 2 unbilled findings, 2,160.00 and 960.00. Ridgeline: 2 expired
+   discounts (375.00, 187.50) and 2 out-of-policy credits (750.00, 120.00). The full expected list
+   is in `demo-data/README.md`.
+5. Admins run checks from **Data setup**. Analysts run them from **Findings**.
+
+M1 (still valid) ✅:
 1. Seed the demo orgs (above), open http://localhost:5173, and click `admin.ridgeline@example.com`
    in the demo panel → **Sign in**.
 2. **Data setup** → *Demo connector* shows the baseline already loaded. **Sync now** re-syncs it:
@@ -84,7 +96,7 @@ Target (end of M5):
 ## Running tests ✅
 
 ```bash
-docker compose exec api pytest                  # backend: ~70 tests, ~40 s
+docker compose exec api pytest                  # backend: ~230 tests, ~2.5 min
 cd frontend && npm run typecheck && npm run build
 ```
 

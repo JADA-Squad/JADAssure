@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 
 import { Placeholder } from "../components/Placeholder";
 import { DataSetupPage } from "../features/data-setup/DataSetupPage";
+import { FindingsPage } from "../features/findings/FindingsPage";
 
 /** Page element per nav path. Each feature replaces its placeholder when its task lands. */
 export const PAGES: Record<string, ReactElement> = {
@@ -20,13 +21,7 @@ export const PAGES: Record<string, ReactElement> = {
       milestone="M4 (FE-007)"
     />
   ),
-  "/findings": (
-    <Placeholder
-      title="Findings"
-      description="Prioritized findings with evidence, calculation and next action."
-      milestone="M2 (FE-003)"
-    />
-  ),
+  "/findings": <FindingsPage />,
   "/recovery": (
     <Placeholder
       title="Recovery tracker"

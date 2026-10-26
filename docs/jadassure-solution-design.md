@@ -284,7 +284,8 @@ inputs are present; `medium` when the agreement was inferred from customer + ite
 supporting record has a data-quality warning.
 
 **Dedup and upsert (FR-23).** Results per family and anchor are reduced to one finding by
-specificity order. Fingerprint upsert: new → insert `open`. Existing and non-terminal → refresh
+specificity order. For price findings the value is the line's total shortfall, with per-cause
+components in the calculation, and findings are frozen once proposed (decision 0003 D-1, D-2). Fingerprint upsert: new → insert `open`. Existing and non-terminal → refresh
 value/evidence and set `last_run_id`. Existing and terminal → leave unchanged.
 
 **Pricing opportunities (FR-33).** Computed on demand in `reporting`, only for items that have a

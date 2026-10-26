@@ -2,22 +2,22 @@
 
 ## ⏵ Resume here
 
-*Updated 2026-10-26, end of session 3.*
+*Updated 2026-10-26, end of session 4.*
 
-- **Owner checkpoints pending:** M0 (all rows Built) and M1 (below). Promote rows to Done after
-  your own test.
-- **Built in M1 (awaiting owner checkpoint):** BE-005, BE-006, BE-007, BE-008, BE-009, BE-011.
-  175 backend tests pass. The agent ran the M1 checkpoint in a browser: seeded demo orgs, demo
-  login panel, manual upload with mapping, profile, commit (2 inserted / 1 rejected), error CSV,
-  re-import (0 inserted / 2 unchanged), demo re-sync (0 inserted / 0 updated across 11 types).
+- **Owner checkpoints pending:** M0, M1, M2. Promote rows to Done after your own test.
+- **Built in M2 (awaiting owner checkpoint):** BE-010, BE-012..BE-020, FE-002 (now complete with
+  Run checks now), FE-003. 232 backend tests pass (about 2.5 minutes). The agent ran the M2 checkpoint in a
+  browser: Cirrus run gives exactly the 4 expected findings (1,410.00 USD); detail evidence,
+  calculation and comment work; re-run gives 0 new; Northwind and Ridgeline give their expected
+  2 and 4 findings in the dev DB.
 - **In Progress, honestly not finished:**
-  - **FE-002**: everything works except **Run checks now**, which needs BE-010 (M2).
-  - **DATA-001**: datasets, seed and expected values (`demo-data/README.md`) are done.
-    Acceptance needs the M2 engine and rule configs to prove the scenarios, plus the M3 follow-up
-    files for scenario 6.
-- **Exact next action (agent):** start **M2** with **BE-012** (versioned rule configs, seeded per
-  demo org), then BE-013 (matcher) → BE-014..BE-018 → BE-019 → BE-010 (finish FE-002) → BE-020 →
-  FE-003 → FE-004 (read-only). Assert findings against the table in `demo-data/README.md`.
+  - **FE-004**: read-only detail and comments are done. Workflow actions (assign, propose, reject,
+    approve) need BE-021 (M3).
+  - **DATA-001**: scenarios 1, 2, 3, 7 (findings) and 8 are provable now. Scenario 4 needs M4
+    (contract extraction); scenario 6 needs the M3 follow-up invoice/payment files.
+- **Exact next action (agent):** start **M3** with **BE-021** (workflow transitions, SoD, immutable
+  terminal states via DB trigger), then BE-022 (prepared corrections + follow-up demo files carrying
+  the correction reference), BE-023, BE-025, FE-004 actions, FE-005, FE-006.
 
 ## Handoff protocol
 
@@ -96,3 +96,4 @@ flowchart LR
 | 2026-10-26 | 1 | Repo created (JADA-Squad/JADAssure, private). Phase 0: requirements (42 FR / 16 GR / 12 NFR), solution design, executive summary, AGENTS.md, task board (48 tasks, all requirement IDs traced both ways), decision 0001, RUNNING.md, this plan. Docker engine not running on dev machine; noted. |
 | 2026-10-26 | 2 | M0 built: Compose stack (db on host 5433 because a local Postgres holds 5432), health endpoint with worker heartbeat, Alembic + canonical model migration (26 tables), pytest harness on a throwaway Postgres DB, AI import-boundary test, signup/login/JWT, permission matrix with route-coverage test, tenant scoping, hash-chained audit with verify, React shell with login/signup and role-aware nav. Fixes along the way: alembic `prepend_sys_path`, circular `rule`↔`rule_version` FK moved to `create_foreign_key`, `.test` emails rejected by validator. Added "view agreements" row to design §3.7. All M0 rows Built. |
 | 2026-10-26 | 3 | M1: field registry + templates; data sources, mapping (saved per source, header/synonym suggestions), profiling, idempotent commit with formula-safe error reports; Postgres job queue + worker with retry; agreements API and the single confirmed-terms query; connector interface + DEMO connector (one-transaction syncs); generated demo datasets for three business types with documented expected findings; seed command and opt-in demo-login panel; Data setup screen. Decision 0002 recorded. Fixes: registry→model attr mismatch caught by test (`version_id`), login page flashed before session restore, demo panel/split layout overflow at narrow widths. FE-002 and DATA-001 remain In Progress (need M2). |
+| 2026-10-26 | 4 | M2: versioned rule configs with business-type defaults; TermBook (equivalent to resolve_terms); matcher buckets; five checks with one-finding-per-line total-shortfall valuation; fingerprint upsert with freeze-once-proposed; check runs as jobs with one-at-a-time guard and worker-side schedule; findings queue/detail/comments API; Findings queue and detail screens; Run checks now on Data setup and Findings. Demo data yields exactly the planted findings across all three business types (asserted in tests and seen in the dev DB). Decision 0003 recorded. Fixes: rule-param decimal normalization ("5" vs "5.00" made a new version), JSONB key order in calculation display, money cells wrapping. |

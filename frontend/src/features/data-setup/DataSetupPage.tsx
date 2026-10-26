@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 
 import { ApiError } from "../../api/client";
+import { RunChecksButton } from "../../components/RunChecksButton";
 import { StatusBadge } from "../../components/StatusBadge";
 import { dataSetupApi } from "./api";
 import { SourceDetail } from "./SourceDetail";
@@ -41,9 +42,7 @@ export function DataSetupPage() {
           <h1>Data setup</h1>
           <p className="muted">Connect sources, import and map records, and check data quality before it reaches the checks.</p>
         </div>
-        <button className="btn" disabled title="Arrives with the assurance engine in M2 (BE-010)">
-          Run checks now
-        </button>
+        <RunChecksButton />
       </div>
 
       <div className="split">
