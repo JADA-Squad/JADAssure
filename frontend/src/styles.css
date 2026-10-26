@@ -89,6 +89,7 @@ table.data th { text-align: left; font-weight: 600; color: var(--text-muted); pa
 table.data td { padding: 8px 10px; border-bottom: 1px solid var(--surface-2); vertical-align: top; }
 table.data tr:last-child td { border-bottom: none; }
 table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.data td.mono { white-space: nowrap; }
 table.data tr.selected td { background: var(--accent-tint); }
 table.data select { font: inherit; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; max-width: 220px; }
 

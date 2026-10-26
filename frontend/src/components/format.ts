@@ -20,6 +20,14 @@ export function formatDecimal(value: string | null | undefined): string {
   return value.includes(".") ? value.replace(/\.?0+$/, "") : value;
 }
 
+/** Unit prices: at least 2 dp, extra precision kept ("12.5000" → "12.50", "16.8750" → "16.875"). */
+export function formatPrice(value: string | null | undefined): string {
+  const trimmed = formatDecimal(value);
+  if (trimmed === "—") return trimmed;
+  const [intPart, frac = ""] = trimmed.split(".");
+  return `${intPart}.${frac.padEnd(2, "0")}`;
+}
+
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "—";
   return value.slice(0, 10);

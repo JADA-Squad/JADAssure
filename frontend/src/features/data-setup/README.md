@@ -4,7 +4,9 @@
 download, profile review (stats, suggested mapping, required-field and unmatched-reference
 warnings, data-quality samples), mapping edit, commit, import history with live status, error
 report download, retry of failed imports and jobs, demo connector **Sync now**, and **Run checks
-now** (shared `components/RunChecksButton.tsx`, M2). Verified in a browser.
+now** (shared `components/RunChecksButton.tsx`, M2). **Suggest mappings** (BE-031, M5) shows
+labelled AI suggestions for unmapped columns, applied only on click and saved only on **Save
+mapping**. Verified in a browser.
 
 ## Scope
 Sources, imports, mappings, profiles, retries and run checks now.

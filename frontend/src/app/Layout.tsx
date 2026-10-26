@@ -1,10 +1,11 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../features/auth/AuthContext";
 import { NAV_AREAS, ROLE_LABELS } from "./nav";
 
 export function Layout() {
   const { session, logout } = useAuth();
+  const navigate = useNavigate();
   if (!session) return null;
   const { user, organization } = session.me;
   const areas = NAV_AREAS.filter((area) => area.roles.includes(user.role));
@@ -31,7 +32,14 @@ export function Layout() {
             <span>
               {user.name} · {ROLE_LABELS[user.role]}
             </span>
-            <button className="btn" onClick={logout}>
+            <button
+              className="btn"
+              onClick={() => {
+                // Explicit sign-out: the next person starts on their own Overview, not this page.
+                logout();
+                navigate("/login", { replace: true });
+              }}
+            >
               Sign out
             </button>
           </div>

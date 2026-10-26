@@ -101,7 +101,7 @@ export function ImportReview({ batch, recordType, onClose }: Props) {
                       aria-label={`Field for column ${h}`}
                       value={mapping[h] ?? ""}
                       disabled={!editable}
-                      onChange={(e) => setMapping({ ...mapping, [h]: e.target.value })}
+                      onChange={(e) => setMapping((m) => ({ ...m, [h]: e.target.value }))}
                     >
                       <option value="">— not imported —</option>
                       {fields.map((f) => (
@@ -149,7 +149,7 @@ export function ImportReview({ batch, recordType, onClose }: Props) {
                     <button
                       className="btn small"
                       disabled={mapping[s.column] === s.field}
-                      onClick={() => setMapping({ ...mapping, [s.column]: s.field })}
+                      onClick={() => setMapping((m) => ({ ...m, [s.column]: s.field }))}
                     >
                       {mapping[s.column] === s.field ? "Applied" : "Apply"}
                     </button>

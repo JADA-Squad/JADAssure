@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { api } from "../../api/client";
-import { formatDecimal, formatMoney } from "../../components/format";
+import { formatDecimal, formatMoney, formatPrice } from "../../components/format";
 
 interface Opportunity {
   agreement_id: string;
@@ -86,20 +86,20 @@ export function PricingPage() {
                       </td>
                       <td className="mono">{o.item_code}</td>
                       <td className="num">
-                        {formatDecimal(o.contracted_net_price)} {o.currency}
+                        {formatPrice(o.contracted_net_price)} {o.currency}
                         {Number(o.authorized_discount_pct) > 0 && (
                           <div className="muted">after {formatDecimal(o.authorized_discount_pct)}% authorized discount</div>
                         )}
                       </td>
                       <td className="num">
-                        {formatDecimal(o.unit_cost)} {o.currency}
+                        {formatPrice(o.unit_cost)} {o.currency}
                         {o.cost_source && <div className="muted">{o.cost_source}</div>}
                       </td>
                       <td className="num">
                         {o.margin_pct}%{o.below_cost && <div className="error">below cost</div>}
                       </td>
                       <td className="num">
-                        {formatDecimal(o.suggested_price)} {o.currency}
+                        {formatPrice(o.suggested_price)} {o.currency}
                       </td>
                       <td className="num">{formatDecimal(o.billed_quantity_12m)}</td>
                       <td className="num">
