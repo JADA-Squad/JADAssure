@@ -98,7 +98,8 @@ flowchart LR
 
 ```
 AGENTS.md              this file
-docker-compose.yml     db, api, worker, web
+docker-compose.yml     db, api, worker, web (local development)
+Dockerfile, render.yaml production image and Render Blueprint (decision 0004)
 .env.example           every config variable, no real secrets
 backend/               Python API + worker (uv project)
   app/core/            config, db session, security, money, tenancy, jobs
@@ -158,6 +159,7 @@ Cross-cutting: `app/core/jobs.py` + `app/worker.py` (BE-008).
 | Frontend | React 18, TypeScript, Vite, React Router, TanStack Query, plain CSS tokens |
 | Tests | pytest against real Postgres; frontend `tsc` + build; browser verification |
 | Packaging | uv, npm, Docker Compose |
+| Hosting (pilot) | Render: one Docker web service (API + React + embedded worker) + Render Postgres, auto-deploy from `main` (decision 0004) |
 
 Decision records: `docs/decisions/0001-jadassure-build-decisions.md`.
 
@@ -171,6 +173,9 @@ docker compose up --build
 # API docs: http://localhost:8000/api/docs   UI: http://localhost:5173
 docker compose exec api python -m app.seed_demo   # load demo orgs + users
 ```
+
+Live pilot: every push to `main` redeploys on Render. See `docs/deployment.md`. Don't push
+broken work to `main`, because it goes live.
 
 ## 7. Adding a new domain/feature module
 

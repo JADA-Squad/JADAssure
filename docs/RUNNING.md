@@ -33,6 +33,13 @@ account. Click one to fill the form. Accounts are `<role>.<org>@example.com` wit
 admin, analyst, approver, commercial and executive, and orgs northwind, cirrus and ridgeline. The
 shared demo password is `DEMO_PASSWORD` in `backend/app/seed_demo.py`.
 
+## Live deployment
+
+Render, auto-deployed from `main`. Setup, configuration, security and free-plan limits are in
+[deployment.md](deployment.md). Reproduce the production image locally with
+`docker build -t jadassure-prod .` and run it with `PORT`, `DATABASE_URL`, `JWT_SECRET` and
+`EMBEDDED_WORKER=true`.
+
 ## What runs where ✅
 
 `web` (Vite dev server, port 5173) serves the React app and proxies every `/api/*` request to

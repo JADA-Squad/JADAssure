@@ -4,7 +4,7 @@ import logging
 import os
 import signal
 import socket
-import time
+import threading
 from datetime import UTC, datetime
 
 from sqlalchemy.dialects.postgresql import insert
@@ -19,12 +19,6 @@ from app.core.models import WorkerHeartbeat
 from app.domains.rules import engine as rules_engine
 
 log = logging.getLogger("jadassure.worker")
-_running = True
-
-
-def _stop(*_: object) -> None:
-    global _running
-    _running = False
 
 
 def beat(worker_id: str) -> None:
@@ -42,24 +36,33 @@ def schedule() -> None:
             session.commit()
 
 
-def main() -> None:
-    settings = get_settings()
-    configure_logging(settings.log_level)
-    worker_id = f"{socket.gethostname()}:{os.getpid()}"
-    signal.signal(signal.SIGTERM, _stop)
-    signal.signal(signal.SIGINT, _stop)
+def run_loop(stop: threading.Event, worker_id: str) -> None:
+    """Heartbeat, scheduled refresh and job execution until `stop` is set."""
+    poll = get_settings().worker_poll_seconds
     log.info("worker started", extra={"worker_id": worker_id})
-    while _running:
+    while not stop.is_set():
         try:
             beat(worker_id)
             schedule()
             # Run queued jobs back to back, beating between them so long queues don't look stale.
-            while _running and jobs.work_once():
+            while not stop.is_set() and jobs.work_once():
                 beat(worker_id)
         except Exception:
             log.exception("worker loop error")
-        time.sleep(settings.worker_poll_seconds)
+        stop.wait(poll)
     log.info("worker stopped", extra={"worker_id": worker_id})
+
+
+def make_worker_id(suffix: str = "") -> str:
+    return f"{socket.gethostname()}:{os.getpid()}{suffix}"
+
+
+def main() -> None:
+    configure_logging(get_settings().log_level)
+    stop = threading.Event()
+    signal.signal(signal.SIGTERM, lambda *_: stop.set())
+    signal.signal(signal.SIGINT, lambda *_: stop.set())
+    run_loop(stop, make_worker_id())
 
 
 if __name__ == "__main__":

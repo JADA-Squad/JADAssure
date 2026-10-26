@@ -31,6 +31,23 @@ class Settings(BaseSettings):
 
     log_level: str = "INFO"
 
+    # Deployment (decision 0004). Single-service hosting runs the worker loop inside the API process
+    # and serves the built React app from FRONTEND_DIST_PATH.
+    embedded_worker: bool = False
+    frontend_dist_path: str | None = None
+    seed_demo_on_start: bool = False
+
+    @field_validator("database_url", "test_database_url")
+    @classmethod
+    def _psycopg_driver(cls, v: str | None) -> str | None:
+        """Hosts such as Render hand out postgres:// URLs; SQLAlchemy needs the psycopg 3 driver named."""
+        if v is None:
+            return v
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                return "postgresql+psycopg://" + v[len(prefix):]
+        return v
+
     @field_validator("jwt_secret")
     @classmethod
     def _secret_must_be_real(cls, v: str) -> str:
