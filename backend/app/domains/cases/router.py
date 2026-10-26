@@ -3,13 +3,24 @@ from decimal import Decimal
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.core.db import get_session
-from app.core.tenancy import TenantContext
+from app.core.tenancy import TenantContext, get_scoped
 from app.domains.access.permissions import Cap, require
-from app.domains.cases import service
-from app.domains.cases.schemas import CommentIn, FindingDetail, FindingFilters, FindingPage
+from app.domains.cases import corrections, service, workflow
+from app.domains.cases.models import Correction
+from app.domains.cases.schemas import (
+    AssignIn,
+    CommentIn,
+    DecisionIn,
+    FindingDetail,
+    FindingFilters,
+    FindingPage,
+    ProposeIn,
+)
+from app.domains.rules.models import Finding
 
 router = APIRouter(prefix="/api/findings", tags=["findings"])
 ViewFindings = Depends(require(Cap.VIEW_FINDINGS))
@@ -58,3 +69,64 @@ def comment(finding_id: uuid.UUID, data: CommentIn, ctx: TenantContext = Depends
     service.add_comment(session, ctx, finding_id, data.body)
     session.commit()
     return service.detail(session, ctx, finding_id)
+
+
+# ---------------------------------------------------------------- workflow (BE-021)
+
+@router.post("/{finding_id}/assign", response_model=FindingDetail)
+def assign(finding_id: uuid.UUID, data: AssignIn, ctx: TenantContext = Depends(require(Cap.COMMENT_ASSIGN)),
+           session: Session = Depends(get_session)):
+    workflow.assign(session, ctx, finding_id, data.owner_id)
+    session.commit()
+    return service.detail(session, ctx, finding_id)
+
+
+@router.post("/{finding_id}/propose", response_model=FindingDetail)
+def propose(finding_id: uuid.UUID, data: ProposeIn, ctx: TenantContext = Depends(require(Cap.PROPOSE_REJECT)),
+            session: Session = Depends(get_session)):
+    workflow.transition(session, ctx, finding_id, "propose", note=data.note,
+                        root_cause_category=data.root_cause_category, root_cause=data.root_cause)
+    session.commit()
+    return service.detail(session, ctx, finding_id)
+
+
+def _decision_endpoint(action: str, cap: Cap):
+    def endpoint(finding_id: uuid.UUID, data: DecisionIn, ctx: TenantContext = Depends(require(cap)),
+                 session: Session = Depends(get_session)):
+        workflow.transition(session, ctx, finding_id, action, note=data.note)
+        session.commit()
+        return service.detail(session, ctx, finding_id)
+
+    endpoint.__name__ = action
+    return endpoint
+
+
+for _action, _cap in (("reject", Cap.PROPOSE_REJECT), ("send_back", Cap.APPROVE), ("approve", Cap.APPROVE),
+                      ("write_off", Cap.APPROVE)):
+    router.add_api_route("/{finding_id}/" + _action.replace("_", "-"), _decision_endpoint(_action, _cap),
+                         methods=["POST"], response_model=FindingDetail, name=_action)
+
+
+# ---------------------------------------------------------------- correction export (BE-022)
+
+corrections_router = APIRouter(prefix="/api/corrections", tags=["corrections"])
+
+
+def _correction(session: Session, ctx: TenantContext, correction_id: uuid.UUID) -> tuple[Correction, Finding]:
+    c = get_scoped(session, Correction, correction_id, ctx)
+    return c, session.get(Finding, c.finding_id)  # type: ignore[return-value]
+
+
+@corrections_router.get("/{correction_id}/export.json")
+def export_json(correction_id: uuid.UUID, ctx: TenantContext = Depends(require(Cap.EXPORT_CORRECTIONS)),
+                session: Session = Depends(get_session)):
+    c, f = _correction(session, ctx, correction_id)
+    return corrections.export_dict(c, f)
+
+
+@corrections_router.get("/{correction_id}/export.csv", response_class=Response)
+def export_csv(correction_id: uuid.UUID, ctx: TenantContext = Depends(require(Cap.EXPORT_CORRECTIONS)),
+               session: Session = Depends(get_session)):
+    c, f = _correction(session, ctx, correction_id)
+    return Response(corrections.export_csv(c, f), media_type="text/csv",
+                    headers={"Content-Disposition": 'attachment; filename="' + c.reference + '.csv"'})

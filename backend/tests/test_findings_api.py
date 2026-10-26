@@ -72,7 +72,8 @@ def test_detail_has_evidence_calculation_timeline_and_comments(client, session):
                       json={"body": "Checked with sales: promo was not extended."})
     assert res.status_code == 201
     tl = res.json()["timeline"]
-    assert [t["kind"] for t in tl] == ["detected", "comment"] and tl[1]["actor_name"] == "Ana Analyst (demo)"
+    # A first comment also moves the finding into review (design §2.5).
+    assert [t["kind"] for t in tl] == ["detected", "status", "comment"] and tl[2]["actor_name"] == "Ana Analyst (demo)"
     assert client.post(f"/api/findings/{fid}/comments", headers=analyst.headers, json={"body": ""}).status_code == 422
 
 

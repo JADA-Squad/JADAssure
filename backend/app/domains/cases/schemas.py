@@ -48,14 +48,27 @@ class RuleVersionRef(BaseModel):
     params: dict[str, Any]
 
 
+class CorrectionRef(BaseModel):
+    id: uuid.UUID
+    reference: str
+    kind: str
+    status: str
+    amount: Decimal
+    currency: str
+
+
 class FindingDetail(FindingListItem):
     also_detected_by: list[str]
     recommended_action: str
     calculation: dict[str, Any]
     evidence: dict[str, Any]
     rule_version: RuleVersionRef
+    root_cause_category: str | None
     root_cause: str | None
     proposer_id: uuid.UUID | None
+    proposer_name: str | None
+    correction: CorrectionRef | None
+    available_actions: list[str]
     ai_summary: str | None
     first_detected_at: datetime
     last_checked_at: datetime
@@ -76,3 +89,17 @@ class FindingFilters(BaseModel):
     owners: list[FilterOption]
     check_types: list[str]
     statuses: list[str]
+
+
+class AssignIn(BaseModel):
+    owner_id: uuid.UUID | None
+
+
+class DecisionIn(BaseModel):
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class ProposeIn(BaseModel):
+    root_cause_category: str = Field(max_length=40)
+    root_cause: str = Field(min_length=1, max_length=500)
+    note: str | None = Field(default=None, max_length=2000)

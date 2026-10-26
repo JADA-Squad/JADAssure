@@ -1,10 +1,11 @@
 """Investigation timeline, approvals and prepared corrections (design §3.2)."""
 
 import uuid
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -17,6 +18,8 @@ CORRECTION_STATUSES = ("prepared", "billed", "partially_paid", "paid")
 
 class InvestigationEvent(IdMixin, TimestampMixin, OrgScopedMixin, Base):
     __tablename__ = "investigation_event"
+    # clock_timestamp(): real insert time, so several timeline events in one transaction keep their order.
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.clock_timestamp())
     __table_args__ = (one_of("kind", ("comment", "assign", "status")),)
 
     finding_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("finding.id", ondelete="CASCADE"), index=True)
@@ -28,6 +31,8 @@ class InvestigationEvent(IdMixin, TimestampMixin, OrgScopedMixin, Base):
 
 class Approval(IdMixin, TimestampMixin, OrgScopedMixin, Base):
     __tablename__ = "approval"
+    # clock_timestamp(): real insert time, so several timeline events in one transaction keep their order.
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.clock_timestamp())
     __table_args__ = (one_of("decision", ("approved", "sent_back", "written_off")),)
 
     finding_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("finding.id", ondelete="CASCADE"), index=True)

@@ -10,8 +10,10 @@ from sqlalchemy.orm import Session, aliased
 from app.core.tenancy import TenantContext, get_scoped, scoped
 from app.domains.access.models import User
 from app.domains.audit import service as audit
-from app.domains.cases.models import Approval, InvestigationEvent
+from app.domains.access.permissions import Cap, has_cap
+from app.domains.cases.models import Approval, Correction, InvestigationEvent
 from app.domains.cases.schemas import (
+    CorrectionRef,
     FilterOption,
     FindingDetail,
     FindingFilters,
@@ -136,7 +138,8 @@ def detail(session: Session, ctx: TenantContext, finding_id: uuid.UUID) -> Findi
     timeline = [TimelineEntry(at=f.created_at, kind="detected", actor_name=None,
                               body=f"Detected by {f.check_type.replace('_', ' ')} check",
                               data={"run_id": str(f.first_run_id)})]
-    for e in session.scalars(scoped(InvestigationEvent, ctx).where(InvestigationEvent.finding_id == f.id)):
+    for e in session.scalars(scoped(InvestigationEvent, ctx).where(InvestigationEvent.finding_id == f.id)
+                             .order_by(InvestigationEvent.created_at)):
         timeline.append(TimelineEntry(at=e.created_at, kind=e.kind, actor_name=names.get(e.actor_id), body=e.body,
                                       data=e.data))
     for a in session.scalars(scoped(Approval, ctx).where(Approval.finding_id == f.id)):
@@ -145,6 +148,7 @@ def detail(session: Session, ctx: TenantContext, finding_id: uuid.UUID) -> Findi
     timeline.sort(key=lambda t: t.at)
 
     item = _item(row, datetime.now(UTC))
+    correction = session.scalar(select(Correction).where(Correction.finding_id == f.id))
     return FindingDetail(
         **item,
         also_detected_by=list(f.also_detected_by or []),
@@ -152,8 +156,14 @@ def detail(session: Session, ctx: TenantContext, finding_id: uuid.UUID) -> Findi
         calculation=f.calculation,
         evidence=f.evidence,
         rule_version=RuleVersionRef(id=rv.id, version_no=rv.version_no, params=rv.params),  # type: ignore[union-attr]
+        root_cause_category=f.root_cause_category,
         root_cause=f.root_cause,
         proposer_id=f.proposer_id,
+        proposer_name=names.get(f.proposer_id),
+        correction=CorrectionRef(id=correction.id, reference=correction.reference, kind=correction.kind,
+                                 status=correction.status, amount=correction.amount,
+                                 currency=correction.currency) if correction else None,
+        available_actions=available_actions(ctx, f),
         ai_summary=f.ai_summary,
         first_detected_at=first_run.created_at if first_run else f.created_at,
         last_checked_at=(last_run.finished_at or last_run.created_at) if last_run else f.updated_at,
@@ -161,8 +171,28 @@ def detail(session: Session, ctx: TenantContext, finding_id: uuid.UUID) -> Findi
     )
 
 
+def available_actions(ctx: TenantContext, f: Finding) -> list[str]:
+    """What this user may do to this finding right now (FE-004 shows exactly these)."""
+    from app.domains.cases.workflow import ASSIGNABLE, TRANSITIONS
+
+    actions = []
+    if has_cap(ctx.role, Cap.COMMENT_ASSIGN):
+        actions.append("comment")
+        if f.status in ASSIGNABLE:
+            actions.append("assign")
+    for name, t in TRANSITIONS.items():
+        if has_cap(ctx.role, t.cap) and f.status in t.from_states:
+            if name == "approve" and f.proposer_id == ctx.user_id:
+                continue  # separation of duties (GR-12)
+            actions.append(name)
+    return actions
+
+
 def add_comment(session: Session, ctx: TenantContext, finding_id: uuid.UUID, body: str) -> None:
-    f = get_scoped(session, Finding, finding_id, ctx)
+    from app.domains.cases.workflow import lock_finding, start_review_if_open
+
+    f = lock_finding(session, ctx, finding_id)
+    start_review_if_open(session, ctx, f, "comment")
     session.add(InvestigationEvent(org_id=ctx.org_id, finding_id=f.id, actor_id=ctx.user_id, kind="comment",
                                    body=body.strip(), data={}))
     # Audit the fact of the comment, not its text (GR-15).

@@ -18,6 +18,8 @@ FAMILIES = ("unbilled", "price", "credit")
 CONFIDENCE = ("high", "medium", "low")
 FINDING_STATUSES = ("open", "in_review", "proposed", "approved", "billed", "recovered", "rejected", "closed_no_recovery")
 TERMINAL_STATUSES = ("rejected", "recovered", "closed_no_recovery")
+ROOT_CAUSES = ("price_not_updated", "discount_not_ended", "delivery_not_billed", "credit_process",
+               "contract_not_loaded", "data_quality", "other")
 RUN_STATUSES = ("queued", "running", "succeeded", "failed")
 
 
@@ -89,6 +91,7 @@ class Finding(IdMixin, TimestampMixin, OrgScopedMixin, Base):
     status: Mapped[str] = mapped_column(String(20), index=True)
     owner_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("app_user.id"), nullable=True)
     proposer_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("app_user.id"), nullable=True)
+    root_cause_category: Mapped[str | None] = mapped_column(String(40), nullable=True)
     root_cause: Mapped[str | None] = mapped_column(String(500), nullable=True)
     recurrence_of_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("finding.id", ondelete="SET NULL"), nullable=True
