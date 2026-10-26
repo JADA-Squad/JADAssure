@@ -84,13 +84,15 @@ Owner task: INFRA-003.
 | Infrastructure | INFRA-001..003 Backlog | nothing scaffolded | none: consistent |
 | Backend/Frontend/Data | all Backlog | nothing scaffolded | none: consistent |
 
-Re-run this reconciliation when Phase 1 starts.
+**Re-run at Phase 1 start (2026-10-26, session 2):** the repo held only the Phase 0 docs, and
+every task row was Backlog. Consistent, so no corrections were needed. After M0 the board shows
+INFRA-001..003, BE-001..004 and FE-001 as Built. This matches the code: each has passing tests,
+and the UI tasks were verified in a browser.
 
 ## Open items carried forward
 
 | Item | Blocks | Owner |
 |---|---|---|
-| Docker Desktop must be running on the dev machine | INFRA-001 (and all running/testing) | Shadrack Adeyemi |
 | Sandbox credentials for a real billing/ERP system (e.g. Xero, QuickBooks, Stripe test mode) | Live connector (deferred, D-1) | Shadrack Adeyemi |
 | Whether to commit the product brief/overview into `docs/source/` | Nothing (requirements doc restates it) | Shadrack Adeyemi |
 | `ANTHROPIC_API_KEY` if live AI extraction is wanted in demos | Optional path of BE-028/BE-029 only | Shadrack Adeyemi |

@@ -2,14 +2,18 @@
 
 ## ⏵ Resume here
 
-*Updated 2026-10-26, end of session 1.*
+*Updated 2026-10-26, end of session 2.*
 
-- **Done:** Phase 0 documents written. Repo `JADA-Squad/JADAssure` (private) created and linked.
-- **In flight:** nothing. Waiting for owner review of Phase 0 (prompt.md rule: no code before the
-  owner has seen Phase 0).
-- **Exact next action:** once the owner approves, start **M0** with **INFRA-001**. Precondition:
-  Docker Desktop running on the dev machine. Then run the Phase 0.1 status reconciliation in
-  decision 0001.
+- **Done (Built, awaiting owner checkpoint):** all of **M0**: INFRA-001..003, BE-001..004, FE-001.
+  The stack runs with `docker compose up -d --build`. 71 backend tests pass, and the frontend
+  type-checks and builds. The agent ran the checkpoint in a browser: signup → Overview, role-filtered
+  nav for admin and executive, session survives reload, direct URL to a forbidden area is blocked,
+  1280px layout correct.
+- **In flight:** nothing.
+- **Owner action:** run the **M0 checkpoint** below yourself, then promote the M0 rows to Done on
+  the task board (or report what's wrong).
+- **Exact next action (agent):** start **M1** with **BE-005** (field registry + CSV templates), then
+  BE-006 → BE-008 → BE-007 → BE-011 → BE-009 → DATA-001 → FE-002.
 
 ## Handoff protocol
 
@@ -86,3 +90,4 @@ flowchart LR
 | Date | Session | Summary |
 |---|---|---|
 | 2026-10-26 | 1 | Repo created (JADA-Squad/JADAssure, private). Phase 0: requirements (42 FR / 16 GR / 12 NFR), solution design, executive summary, AGENTS.md, task board (48 tasks, all requirement IDs traced both ways), decision 0001, RUNNING.md, this plan. Docker engine not running on dev machine; noted. |
+| 2026-10-26 | 2 | M0 built: Compose stack (db on host 5433 because a local Postgres holds 5432), health endpoint with worker heartbeat, Alembic + canonical model migration (26 tables), pytest harness on a throwaway Postgres DB, AI import-boundary test, signup/login/JWT, permission matrix with route-coverage test, tenant scoping, hash-chained audit with verify, React shell with login/signup and role-aware nav. Fixes along the way: alembic `prepend_sys_path`, circular `rule`↔`rule_version` FK moved to `create_foreign_key`, `.test` emails rejected by validator. Added "view agreements" row to design §3.7. All M0 rows Built. |
