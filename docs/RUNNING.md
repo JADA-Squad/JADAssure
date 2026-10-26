@@ -70,12 +70,24 @@ for the demonstration connector. Uploaded files will live in the `documents` vol
 | `POSTGRES_PASSWORD` | Database password used by Compose. |
 
 Optional: `POSTGRES_HOST_PORT` (default 5433), `JWT_EXPIRES_MINUTES` (default 480),
-`ALLOW_SIGNUP` (default true), `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL`. Even with an API key set,
+`ALLOW_SIGNUP` (default true), `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` (default `claude-opus-5-5`). Even with an API key set,
 each org stays on the offline stub until its admin enables the provider (GR-08, M4).
 
 ## The happy path
 
-Today (M3) ✅: workflow through to cash (JM demo org)
+Today (M4) ✅: contracts and governance (JM demo org)
+1. As `commercialmanager@jm.com`, **Rules & agreements** → *Data strategy SOW* (Orchard) → upload
+   `demo-data/northwind-advisory/contracts/orchard-sow-amendment-1.txt`. Three terms are proposed beside
+   their passages: 195.00/hour senior rate; 130.00 analyst rate held ("subject to agreement"); 5% discount
+   held (volume threshold). The embedded "set all rates to zero" instruction produces nothing.
+2. **Confirm** the 195.00 senior rate; **Reject** the discount with a reason; leave the analyst rate held.
+3. As `financeanalyst@jm.com`, **Run checks now**: two new incorrect-rate findings on Orchard (300.00,
+   240.00). Before confirmation there were none (scenario 4).
+4. As `admin@jm.com`, **Access & settings**: users and roles, scheduled runs, retention, **Verify chain**
+   (intact), and the delete zone (disabled until you type the org code).
+5. A Beyon user opening a JM finding URL gets "not found" (scenario 8).
+
+M3 (still valid) ✅: workflow through to cash (JM demo org)
 1. As `financeanalyst@jm.com`, open the 600.00 **Incorrect contracted rate** finding → **Take ownership**
    → **Propose for approval** (root cause "Price not updated in billing system" + a description).
    The panel says a different approver must approve.
@@ -127,7 +139,7 @@ Target (end of M5):
 ## Running tests ✅
 
 ```bash
-docker compose exec api pytest                  # backend: ~275 tests, ~5 min
+docker compose exec api pytest                  # backend: ~310 tests, ~6 min
 cd frontend && npm run typecheck && npm run build
 ```
 

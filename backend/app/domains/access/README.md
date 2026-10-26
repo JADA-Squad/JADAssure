@@ -1,15 +1,11 @@
 # access
 
-**Built (M0):** BE-002 (signup, login, user management) and BE-003 (permission matrix, tenant
-scoping). The status on the task board is Built and waits for owner checkpoint. BE-032 (settings,
-retention, deletion) is Backlog.
+**Built:** BE-002, BE-003 (M0) and BE-032 (M4). Status: Built, awaiting owner checkpoint.
 
-- `permissions.py`: the single role → capability matrix (design §3.7) and the `require(cap)`
-  dependency. Every non-public route must depend on it, or on `current_context`. A test enforces
-  this.
-- Tenant context and the `scoped()` / `get_scoped()` helpers live in `app/core/tenancy.py`, because
-  every domain uses them. The org id comes only from the token and is checked against the user row.
-- Emails are globally unique and lower-cased (one user, one org: decision 0001 D-5).
+- `permissions.py`: the role → capability matrix and `require` / `require_any`.
+- `settings.py`: refresh interval, AI provider (audited opt-in, key required), retention (hourly
+  purge of raw uploads), and organization data deletion with a tombstone (decision 0007 D-4, D-5).
+- Tenant context and scoping helpers live in `app/core/tenancy.py`.
 
 ## Scope
 Organizations, users, roles, authentication, the permission matrix, tenant scoping, org settings and retention.

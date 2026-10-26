@@ -2,22 +2,19 @@
 
 ## ⏵ Resume here
 
-*Updated 2026-10-26, end of session 7.*
+*Updated 2026-10-26, end of session 8.*
 
-- **Owner checkpoints pending:** M0, M1, M2, M3. Promote rows to Done after your own test.
-- **Built in M3 (awaiting owner checkpoint):** BE-021, BE-022, BE-023, BE-025, FE-004, FE-005,
-  FE-006. The agent ran the M3 checkpoint in a browser on JM: propose with root cause, the
-  separation-of-duties notice, reject (scenario 5), approve → JA-JM-0001, simulate billing →
-  billed 600 / cash 0, simulate payment → recovered 600 (scenario 6), Overview figures 2,970 /
-  600 / 600 / 600, rejected 1, chart and root causes.
-- **In Progress:** **DATA-001**: scenarios 1, 2, 3, 5, 6, 7 and 8 are now demonstrable;
-  scenario 4 (ambiguous contract term) needs M4.
-- **Live site:** Render Blueprint still to be applied by the owner (docs/deployment.md). Every
-  push to `main` deploys once it is.
-- **Exact next action (agent):** start **M4** with **BE-027** (document upload + storage + text
-  extraction), then BE-028 (AI provider interface, stub default), BE-029 (proposed-term
-  extraction with verbatim-passage check and injection safety), BE-030 (term confirmation),
-  BE-032 (settings, retention, deletion), FE-007, FE-009.
+- **Owner checkpoints pending:** M0–M4. Promote rows to Done after your own test.
+- **Built in M4 (awaiting owner checkpoint):** BE-027, BE-028, BE-029, BE-030, BE-032, FE-007,
+  FE-009, and **DATA-001** (all eight scenarios now demonstrable). The agent ran the M4 checkpoint
+  in a browser on JM: upload Orchard amendment → 3 proposed / 2 held / 0 discarded, injection inert;
+  confirm 195 rate, reject discount; re-run → 2 new findings (300, 240); Beyon user gets 404 on a JM
+  finding; audit chain verifies; settings and delete zone behave.
+- **Live site:** Render Blueprint still to be applied by the owner (docs/deployment.md).
+- **Exact next action (agent):** start **M5**: BE-024 (recurrence + prevented-recurrence estimate),
+  BE-026 + FE-008 (pricing opportunities), BE-031 (AI mapping suggestions + labelled finding
+  summaries), then QA-001 (automated acceptance test for all eight scenarios, < 30 s timing) and
+  DOC-001 (walkthrough).
 
 ## Handoff protocol
 
@@ -100,3 +97,4 @@ flowchart LR
 | 2026-10-26 | 5 | UI retheme to #E85E08 with black/white (AA contrast kept: black text on orange, #B84A06 for orange text). Render deployment: root multi-stage Dockerfile, render.yaml (web + Postgres, auto-deploy from main), embedded worker thread, SPA served by FastAPI, postgres:// URL normalization, public-safe defaults (no demo-account listing, no signup), docs/deployment.md (DOC-002 Built), decision 0004. Verified the production image end to end locally with a Render-style environment. |
 | 2026-10-26 | 6 | Demo orgs renamed per owner: **JM** (professional-services + subscription datasets via two demo connector sources) and **Beyon** (distribution). Logins are role-based on each org's domain (admin@, financeanalyst@, financeapprover@, commercialmanager@, executive@ + jm.com / beyon.com). Seed gained `--remove-obsolete` (demo-flagged orgs only; used by start.sh on Render). DATA-001 acceptance wording updated; decision 0005. Verified: dev DB reseeded (old demo orgs removed, non-demo org kept), JM analyst sees 6 findings totalling 4,530.00 USD. |
 | 2026-10-26 | 7 | M3: workflow per design §2.5 with row locks, separation of duties and server-computed available actions; terminal-state immutability trigger; root-cause categories; prepared corrections (JA-<org>-0001) with CSV/JSON export; recovery reconcile (billed from referenced invoices, cash only from allocations to them, capped, idempotent) queued after imports; DEMO-only billing/payment simulation; six outcome figures + trend + root causes API; finding actions panel, Recovery tracker and Overview (emphasis chart after palette validation rejected orange+black). Fixes: same-transaction timeline order (clock_timestamp), Postgres GROUP BY with bound to_char format, missing accessible names on action forms. Decision 0006. |
+| 2026-10-26 | 8 | M4: contract upload (PDF/DOCX/TXT, signature checks, sha256, DocumentStore, text extraction); AI provider interface with offline stub default and Claude adapter (claude-opus-5-5, structured output, fallbacks) behind an audited opt-in + key; proposed-term extraction with verbatim-passage verification and ambiguity flags; confirm/edit/reject with audit; settings (schedule, provider, retention purge) and org data deletion with tombstone; Rules & agreements and Access & settings screens; Orchard demo hours for scenario 4. Fixes: alembic constraint double-prefix, transient Windows file lock during scripted edits (retry), stale container env for ANTHROPIC_MODEL (recreate, not restart), users table overflow. Decision 0007. |

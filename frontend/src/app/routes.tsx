@@ -1,22 +1,18 @@
 import type { ReactElement } from "react";
 
 import { Placeholder } from "../components/Placeholder";
+import { AgreementsPage } from "../features/agreements/AgreementsPage";
 import { DataSetupPage } from "../features/data-setup/DataSetupPage";
 import { FindingsPage } from "../features/findings/FindingsPage";
 import { OverviewPage } from "../features/overview/OverviewPage";
 import { RecoveryPage } from "../features/recovery/RecoveryPage";
+import { SettingsPage } from "../features/settings/SettingsPage";
 
 /** Page element per nav path. Each feature replaces its placeholder when its task lands. */
 export const PAGES: Record<string, ReactElement> = {
   "/overview": <OverviewPage />,
   "/data-setup": <DataSetupPage />,
-  "/agreements": (
-    <Placeholder
-      title="Rules & agreements"
-      description="Confirmed commercial terms, versions, effective dates and approval status."
-      milestone="M4 (FE-007)"
-    />
-  ),
+  "/agreements": <AgreementsPage />,
   "/findings": <FindingsPage />,
   "/recovery": <RecoveryPage />,
   "/pricing": (
@@ -26,11 +22,5 @@ export const PAGES: Record<string, ReactElement> = {
       milestone="M5 (FE-008)"
     />
   ),
-  "/settings": (
-    <Placeholder
-      title="Access & settings"
-      description="Users and roles, approvals, integration permissions and audit history."
-      milestone="M4 (FE-009)"
-    />
-  ),
+  "/settings": <SettingsPage />,
 };

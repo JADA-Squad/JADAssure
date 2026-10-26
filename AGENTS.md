@@ -154,7 +154,7 @@ Cross-cutting: `app/core/jobs.py` + `app/worker.py` (BE-008).
 | Persistence | PostgreSQL 16, SQLAlchemy 2.0, Alembic, psycopg 3 |
 | Background work | Postgres job table + worker process (decision 0001 D-3) |
 | Document store | Local filesystem, **behind a `DocumentStore` interface, swappable at a later decision** (S3/Azure) |
-| AI provider | **Behind an `AIProvider` interface, swappable at a later decision.** `stub` default, `anthropic` optional, off by default |
+| AI provider | **Behind an `AIProvider` interface, swappable at a later decision.** `stub` default (offline); `anthropic` (Claude, `claude-opus-5-5`) optional, off by default, audited opt-in + key (decision 0007) |
 | Auth | Local accounts, bcrypt, JWT (SSO deferred, decision 0001 D-5) |
 | Frontend | React 18, TypeScript, Vite, React Router, TanStack Query, plain CSS tokens |
 | Tests | pytest against real Postgres; frontend `tsc` + build; browser verification |

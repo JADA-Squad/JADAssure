@@ -1,15 +1,16 @@
 # contracts
 
-**Built (M1):** BE-011 (agreements API and term resolution). Status: Built, awaiting owner
-checkpoint. BE-027, BE-029 and BE-030 (documents, extraction, confirmation) are Backlog for M4.
+**Built:** BE-011 (M1), BE-027, BE-029, BE-030 (M4). Status: Built, awaiting owner checkpoint.
 
-- `terms.py`: `confirmed_terms(org_id)` is **the only query the engine may use to read terms**
-  (GR-03). `resolve_terms(...)` returns the confirmed terms of the version in effect on a date,
-  where the highest version number wins on overlap, filtered to terms effective on that date.
-- Terms imported by CSV are stored `confirmed`; extracted terms will be stored `proposed`
-  (decision 0001 D-6).
-- API: `GET /api/agreements`, `GET /api/agreements/{id}` (versions with every term and its status),
-  `GET /api/agreements/{id}/terms?on=YYYY-MM-DD&item_code=…` (what the engine would apply).
+- `terms.py`: `confirmed_terms()` is the only query the engine may use (GR-03); `resolve_terms()`
+  and the in-memory `TermBook`.
+- `documents.py`: PDF/DOCX/TXT upload with signature checks, 10 MB cap, sha256, DocumentStore, and
+  text extraction.
+- `extraction.py`: the `extract_terms` job (schema → verbatim passage → version in effect →
+  `proposed`), plus `confirm()` (optional edits) and `reject()`, all audited. Decision 0007
+  D-1, D-2.
+- API: `/api/agreements[/{id}[/terms|/documents]]`, `/api/documents/{id}/original|extract`,
+  `/api/terms?status=…`, `/api/terms/{id}/confirm|reject`.
 
 ## Scope
 Agreements, agreement versions, commercial terms, contract documents, extraction orchestration and term confirmation.
