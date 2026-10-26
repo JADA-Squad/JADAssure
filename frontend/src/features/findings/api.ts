@@ -49,7 +49,12 @@ export interface FindingDetail extends FindingItem {
     credit?: EvidenceRecord;
   };
   rule_version: { id: string; version_no: number; params: Record<string, unknown> };
+  root_cause_category: string | null;
   root_cause: string | null;
+  proposer_id: string | null;
+  proposer_name: string | null;
+  correction: { id: string; reference: string; kind: string; status: string; amount: string; currency: string } | null;
+  available_actions: string[];
   ai_summary: string | null;
   first_detected_at: string;
   last_checked_at: string;
@@ -93,4 +98,13 @@ export const findingsApi = {
   get: (id: string) => api<FindingDetail>(`/findings/${id}`),
   comment: (id: string, body: string) =>
     api<FindingDetail>(`/findings/${id}/comments`, { method: "POST", body: JSON.stringify({ body }) }),
+  assign: (id: string, owner_id: string | null) =>
+    api<FindingDetail>(`/findings/${id}/assign`, { method: "POST", body: JSON.stringify({ owner_id }) }),
+  propose: (id: string, root_cause_category: string, root_cause: string, note: string) =>
+    api<FindingDetail>(`/findings/${id}/propose`, {
+      method: "POST",
+      body: JSON.stringify({ root_cause_category, root_cause, note: note || null }),
+    }),
+  decide: (id: string, action: "reject" | "send-back" | "approve" | "write-off", note: string) =>
+    api<FindingDetail>(`/findings/${id}/${action}`, { method: "POST", body: JSON.stringify({ note: note || null }) }),
 };

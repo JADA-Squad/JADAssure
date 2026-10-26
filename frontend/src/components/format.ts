@@ -47,3 +47,20 @@ export const FINDING_STATUS_LABELS: Record<string, string> = {
   rejected: "Rejected",
   closed_no_recovery: "Closed, no recovery",
 };
+
+export const ROOT_CAUSE_LABELS: Record<string, string> = {
+  price_not_updated: "Price not updated in billing system",
+  discount_not_ended: "Discount not ended on time",
+  delivery_not_billed: "Delivery not passed to billing",
+  credit_process: "Credit issued outside process",
+  contract_not_loaded: "Contract terms not loaded",
+  data_quality: "Data quality issue",
+  other: "Other",
+};
+
+export const CORRECTION_STATUS_LABELS: Record<string, string> = {
+  prepared: "Prepared",
+  billed: "Billed",
+  partially_paid: "Partially paid",
+  paid: "Paid",
+};

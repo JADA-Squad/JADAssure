@@ -75,7 +75,20 @@ each org stays on the offline stub until its admin enables the provider (GR-08, 
 
 ## The happy path
 
-Today (M2) ✅: findings
+Today (M3) ✅: workflow through to cash (JM demo org)
+1. As `financeanalyst@jm.com`, open the 600.00 **Incorrect contracted rate** finding → **Take ownership**
+   → **Propose for approval** (root cause "Price not updated in billing system" + a description).
+   The panel says a different approver must approve.
+2. Open the 960.00 analyst-hours finding → **Take ownership** → **Reject** with a reason
+   (scenario 5). It's final and never counted.
+3. As `financeapprover@jm.com`, open the proposed finding → **Approve**. Correction `JA-JM-0001`
+   is prepared (export CSV/JSON).
+4. **Recovery tracker** → **Simulate billing** (DEMO): billed 600.00, cash 0.00 →
+   **Simulate payment** (DEMO): cash recovered 600.00; the finding becomes Recovered (scenario 6).
+5. As `executive@jm.com`, **Overview**: cash recovered 600.00; potential 2,970.00; confirmed,
+   corrected billing 600.00; rejected 1; trend and root causes.
+
+M2 (still valid) ✅: findings
 1. Sign in as `financeanalyst@jm.com` (demo panel) → **Findings** → **Run checks now**.
    After a few seconds: 6 findings, potential 4,530.00 USD. Unbilled hours 2,160.00 and 960.00,
    incorrect rate 600.00 (March), and three missed increases of 270.00 (Jul–Sep).
@@ -114,7 +127,7 @@ Target (end of M5):
 ## Running tests ✅
 
 ```bash
-docker compose exec api pytest                  # backend: ~230 tests, ~2.5 min
+docker compose exec api pytest                  # backend: ~275 tests, ~5 min
 cd frontend && npm run typecheck && npm run build
 ```
 

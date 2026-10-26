@@ -1,14 +1,16 @@
 # cases
 
-**Built (M2):** BE-020 (findings queue, detail, timeline, comments). Status: Built, awaiting owner
-checkpoint. BE-021 (workflow, separation of duties, immutability) and BE-022 (prepared
-corrections) are Backlog for M3.
+**Built:** BE-020 (M2), BE-021 and BE-022 (M3). Status: Built, awaiting owner checkpoint.
 
-- `service.py`: priority = value × confidence weight (high 1.0, medium 0.7, low 0.4). Filters,
-  detail with timeline (detection + investigation events + approvals), and comments (the audit
-  records the fact of a comment, not its text).
-- The `Finding` model lives in `rules` (generation owns it). `cases` owns the investigation events,
-  approvals and corrections around it.
+- `service.py`: queue, filters, detail (timeline, correction, `available_actions`), comments.
+- `workflow.py`: the design §2.5 transitions with row locks, from-state checks, separation of
+  duties (GR-12), timeline + audit events. `system_transition()` is only for recovery-driven
+  moves (approved → billed → recovered).
+- `corrections.py`: one prepared correction per approval (`JA-<org>-0001`), CSV/JSON export. No
+  send path (GR-01).
+- Terminal findings are immutable through a database trigger (migration 0004, GR-13).
+- The `Finding` model lives in `rules`; `cases` owns investigation events, approvals and corrections.
+- Decisions: 0006 D-1..D-4, D-8.
 
 ## Scope
 Findings queue and detail API, workflow transitions, comments, approvals and prepared corrections. Must never import `ai`.

@@ -154,3 +154,22 @@ textarea { font: inherit; padding: 8px 10px; border: 1px solid var(--border); bo
 @media (max-width: 1100px) {
   .evidence-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Workflow */
+.correction-box { border: 1px solid var(--accent); background: var(--accent-tint); border-radius: 6px; padding: 12px; }
+.ai-box { font-size: 13px; padding-top: 8px; border-top: 1px solid var(--border); }
+
+/* Overview */
+.hero .label, .tile .label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.hero-value { font-size: 48px; font-weight: 700; line-height: 1.1; }
+.hero { border-left: 4px solid var(--brand); padding-left: 14px; }
+.tile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.tile { background: var(--surface-2); border-radius: 6px; padding: 12px; }
+.tile .value { font-size: 20px; font-weight: 600; margin: 2px 0; }
+.tile .help { font-size: 12px; color: var(--text-muted); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text-muted); }
+.legend i, .chart-tooltip i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.chart-wrap { position: relative; }
+.chart-wrap svg { width: 100%; height: auto; display: block; }
+.chart-wrap .axis { font-size: 11px; fill: var(--text-muted); font-variant-numeric: tabular-nums; }
+.chart-tooltip { position: absolute; top: 0; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: 6px; padding: 6px 10px; font-size: 12px; pointer-events: none; white-space: nowrap; }

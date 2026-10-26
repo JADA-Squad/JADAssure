@@ -2,25 +2,22 @@
 
 ## ⏵ Resume here
 
-*Updated 2026-10-26, end of session 4.*
+*Updated 2026-10-26, end of session 7.*
 
-- **Owner checkpoints pending:** M0, M1, M2. Promote rows to Done after your own test.
-- **Built in M2 (awaiting owner checkpoint):** BE-010, BE-012..BE-020, FE-002 (now complete with
-  Run checks now), FE-003. 232 backend tests pass (about 2.5 minutes). The agent ran the M2 checkpoint in a
-  browser: Cirrus run gives exactly the 4 expected findings (1,410.00 USD); detail evidence,
-  calculation and comment work; re-run gives 0 new; Northwind and Ridgeline give their expected
-  2 and 4 findings in the dev DB.
-- **In Progress, honestly not finished:**
-  - **FE-004**: read-only detail and comments are done. Workflow actions (assign, propose, reject,
-    approve) need BE-021 (M3).
-  - **DATA-001**: scenarios 1, 2, 3, 7 (findings) and 8 are provable now. Scenario 4 needs M4
-    (contract extraction); scenario 6 needs the M3 follow-up invoice/payment files.
-- **Deployment:** Render Blueprint (`render.yaml`) and production `Dockerfile` are in `main`,
-  and the image was verified locally Render-style. **Owner action:** create the Render account
-  and apply the Blueprint (docs/deployment.md). After that, every push to `main` goes live.
-- **Exact next action (agent):** start **M3** with **BE-021** (workflow transitions, SoD, immutable
-  terminal states via DB trigger), then BE-022 (prepared corrections + follow-up demo files carrying
-  the correction reference), BE-023, BE-025, FE-004 actions, FE-005, FE-006.
+- **Owner checkpoints pending:** M0, M1, M2, M3. Promote rows to Done after your own test.
+- **Built in M3 (awaiting owner checkpoint):** BE-021, BE-022, BE-023, BE-025, FE-004, FE-005,
+  FE-006. The agent ran the M3 checkpoint in a browser on JM: propose with root cause, the
+  separation-of-duties notice, reject (scenario 5), approve → JA-JM-0001, simulate billing →
+  billed 600 / cash 0, simulate payment → recovered 600 (scenario 6), Overview figures 2,970 /
+  600 / 600 / 600, rejected 1, chart and root causes.
+- **In Progress:** **DATA-001**: scenarios 1, 2, 3, 5, 6, 7 and 8 are now demonstrable;
+  scenario 4 (ambiguous contract term) needs M4.
+- **Live site:** Render Blueprint still to be applied by the owner (docs/deployment.md). Every
+  push to `main` deploys once it is.
+- **Exact next action (agent):** start **M4** with **BE-027** (document upload + storage + text
+  extraction), then BE-028 (AI provider interface, stub default), BE-029 (proposed-term
+  extraction with verbatim-passage check and injection safety), BE-030 (term confirmation),
+  BE-032 (settings, retention, deletion), FE-007, FE-009.
 
 ## Handoff protocol
 
@@ -102,3 +99,4 @@ flowchart LR
 | 2026-10-26 | 4 | M2: versioned rule configs with business-type defaults; TermBook (equivalent to resolve_terms); matcher buckets; five checks with one-finding-per-line total-shortfall valuation; fingerprint upsert with freeze-once-proposed; check runs as jobs with one-at-a-time guard and worker-side schedule; findings queue/detail/comments API; Findings queue and detail screens; Run checks now on Data setup and Findings. Demo data yields exactly the planted findings across all three business types (asserted in tests and seen in the dev DB). Decision 0003 recorded. Fixes: rule-param decimal normalization ("5" vs "5.00" made a new version), JSONB key order in calculation display, money cells wrapping. |
 | 2026-10-26 | 5 | UI retheme to #E85E08 with black/white (AA contrast kept: black text on orange, #B84A06 for orange text). Render deployment: root multi-stage Dockerfile, render.yaml (web + Postgres, auto-deploy from main), embedded worker thread, SPA served by FastAPI, postgres:// URL normalization, public-safe defaults (no demo-account listing, no signup), docs/deployment.md (DOC-002 Built), decision 0004. Verified the production image end to end locally with a Render-style environment. |
 | 2026-10-26 | 6 | Demo orgs renamed per owner: **JM** (professional-services + subscription datasets via two demo connector sources) and **Beyon** (distribution). Logins are role-based on each org's domain (admin@, financeanalyst@, financeapprover@, commercialmanager@, executive@ + jm.com / beyon.com). Seed gained `--remove-obsolete` (demo-flagged orgs only; used by start.sh on Render). DATA-001 acceptance wording updated; decision 0005. Verified: dev DB reseeded (old demo orgs removed, non-demo org kept), JM analyst sees 6 findings totalling 4,530.00 USD. |
+| 2026-10-26 | 7 | M3: workflow per design §2.5 with row locks, separation of duties and server-computed available actions; terminal-state immutability trigger; root-cause categories; prepared corrections (JA-<org>-0001) with CSV/JSON export; recovery reconcile (billed from referenced invoices, cash only from allocations to them, capped, idempotent) queued after imports; DEMO-only billing/payment simulation; six outcome figures + trend + root causes API; finding actions panel, Recovery tracker and Overview (emphasis chart after palette validation rejected orange+black). Fixes: same-transaction timeline order (clock_timestamp), Postgres GROUP BY with bound to_char format, missing accessible names on action forms. Decision 0006. |

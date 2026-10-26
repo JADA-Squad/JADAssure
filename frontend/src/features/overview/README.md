@@ -1,6 +1,9 @@
 # overview
 
-Nothing built yet; all tasks below are in Backlog on the task board.
+**Built (M3):** FE-006. Cash recovered is the hero figure. The other five figures are labelled
+tiles with definitions, never summed. Below them: findings counts, a 12-month column chart
+(`TrendChart.tsx`: emphasis form, legend, hover tooltip, table view; decision 0006 D-7) and the
+top recurring root causes. Verified in a browser.
 
 ## Scope
 The overview dashboard: six outcome figures, open findings, trend and recurring causes.

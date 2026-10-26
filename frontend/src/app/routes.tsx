@@ -3,16 +3,12 @@ import type { ReactElement } from "react";
 import { Placeholder } from "../components/Placeholder";
 import { DataSetupPage } from "../features/data-setup/DataSetupPage";
 import { FindingsPage } from "../features/findings/FindingsPage";
+import { OverviewPage } from "../features/overview/OverviewPage";
+import { RecoveryPage } from "../features/recovery/RecoveryPage";
 
 /** Page element per nav path. Each feature replaces its placeholder when its task lands. */
 export const PAGES: Record<string, ReactElement> = {
-  "/overview": (
-    <Placeholder
-      title="Overview"
-      description="Financial outcomes, open findings, trends and recurring causes."
-      milestone="M3 (FE-006)"
-    />
-  ),
+  "/overview": <OverviewPage />,
   "/data-setup": <DataSetupPage />,
   "/agreements": (
     <Placeholder
@@ -22,13 +18,7 @@ export const PAGES: Record<string, ReactElement> = {
     />
   ),
   "/findings": <FindingsPage />,
-  "/recovery": (
-    <Placeholder
-      title="Recovery tracker"
-      description="Correction status, invoice reference, payment status and verified outcome."
-      milestone="M3 (FE-005)"
-    />
-  ),
+  "/recovery": <RecoveryPage />,
   "/pricing": (
     <Placeholder
       title="Pricing opportunities"

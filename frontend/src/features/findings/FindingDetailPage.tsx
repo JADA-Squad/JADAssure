@@ -12,9 +12,10 @@ import {
   formatMoney,
 } from "../../components/format";
 import { useAuth } from "../auth/AuthContext";
+import { ActionsPanel } from "./ActionsPanel";
 import { findingsApi, type EvidenceRecord, type FindingDetail } from "./api";
 
-/** Finding detail (FR-26): side-by-side evidence, calculation, timeline, comments. Workflow actions arrive in M3. */
+/** Finding detail (FR-26..FR-28): actions, side-by-side evidence, calculation, timeline, comments. */
 export function FindingDetailPage() {
   const { id = "" } = useParams();
   const finding = useQuery({ queryKey: ["findings", "detail", id], queryFn: () => findingsApi.get(id) });
@@ -52,7 +53,11 @@ export function FindingDetailPage() {
               <span className={`badge conf-${f.confidence}`}>{f.confidence} confidence</span>
             </div>
             <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-              Estimated (potential) value: not confirmed until approved
+              {["open", "in_review", "proposed"].includes(f.status)
+                ? "Estimated (potential) value: not confirmed until approved"
+                : f.status === "rejected"
+                  ? "Rejected: not counted in any figure"
+                  : "Confirmed value"}
             </div>
           </div>
         </div>
@@ -67,6 +72,7 @@ export function FindingDetailPage() {
         )}
       </section>
 
+      <ActionsPanel f={f} />
       <Evidence f={f} />
       <Calculation f={f} />
       <Timeline f={f} />
@@ -269,7 +275,7 @@ function Timeline({ f }: { f: FindingDetail }) {
         {f.timeline.map((t, i) => (
           <li key={i}>
             <span className="muted">{formatDateTime(t.at)}</span> ·{" "}
-            <strong>{t.actor_name ?? "JADAssure"}</strong> {t.kind === "comment" ? "commented" : t.kind}
+            <strong>{t.actor_name ?? "JADAssure"}</strong> {timelineVerb(t)}
             {t.body && <div className="timeline-body">{t.body}</div>}
           </li>
         ))}
@@ -292,9 +298,14 @@ function Timeline({ f }: { f: FindingDetail }) {
           </div>
         </form>
       )}
-      <p className="muted" style={{ marginBottom: 0, fontSize: 12 }}>
-        Propose, reject and approve actions arrive in M3.
-      </p>
     </section>
   );
+}
+
+function timelineVerb(t: FindingDetail["timeline"][number]): string {
+  if (t.kind === "comment") return "commented";
+  if (t.kind === "assign") return "changed the owner";
+  if (t.kind === "approval") return `recorded a decision: ${String(t.data.decision).replace("_", " ")}`;
+  if (t.kind === "status") return `moved it to ${FINDING_STATUS_LABELS[String(t.data.to)] ?? String(t.data.to)}`;
+  return t.kind;
 }

@@ -1,12 +1,14 @@
 # findings
 
-**Built (M2):** FE-003 (queue). **In progress:** FE-004. The detail page shows side-by-side
-evidence, calculation, timeline and comments, verified in a browser. Workflow actions (assign,
-propose, reject, approve) and the AI summary label arrive with BE-021 in M3.
+**Built:** FE-003 (queue, M2) and FE-004 (detail with workflow actions, M3). Verified in a
+browser.
 
-- `FindingsPage.tsx`: seven filters kept in the URL, priority order, totals per currency, and
-  Run checks now for roles with `run_checks`.
-- `FindingDetailPage.tsx`: route `/findings/:id`.
+- `FindingsPage.tsx`: seven filters kept in the URL, priority order, totals, Run checks now.
+- `FindingDetailPage.tsx` + `ActionsPanel.tsx`: next-step guidance, Take ownership / assign,
+  propose (root-cause category + description), reject / send back / write off (reason
+  required), approve. These are exactly the server's `available_actions`. Also the prepared
+  correction with CSV/JSON export, the labelled AI-summary slot, evidence, calculation and
+  timeline.
 - Money is formatted from decimal strings with BigInt, never via floats (`components/format.ts`).
 
 ## Scope

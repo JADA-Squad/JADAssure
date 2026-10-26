@@ -1,6 +1,9 @@
 # recovery
 
-Nothing built yet; all tasks below are in Backlog on the task board.
+**Built (M3):** FE-005. The tracker lists each correction with its reference, finding,
+customer, amount, status, matched invoice, billed amount, payments and verified cash recovered.
+It has a CSV export per correction, and in DEMO orgs **Simulate billing / Simulate payment**
+(decision 0006 D-6). Verified in a browser.
 
 ## Scope
 Recovery tracker for prepared corrections through to cash.
