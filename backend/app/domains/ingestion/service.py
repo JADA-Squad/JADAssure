@@ -30,6 +30,10 @@ from app.domains.ingestion.parsing import CsvError, canonical_text, csv_safe, pa
 from app.domains.ingestion.registry import RECORDS, FieldSpec, RecordSpec
 
 IMPORT_JOB = "import_commit"
+# Imports of these record types can bill or pay a prepared correction (BE-023). Ingestion only names
+# the job kind; the recovery domain owns the handler.
+RECOVERY_TRIGGERS = ("invoice", "invoice_line", "payment_allocation")
+RECOVERY_JOB = "recovery_reconcile"
 _DATE_PAIRS = (("start_date", "end_date"), ("effective_from", "effective_to"), ("service_period_start", "service_period_end"))
 _ZERO_DEFAULTS = {"invoice_line": ("discount_pct", "tax_amount")}
 _SAMPLE_LIMIT = 5
@@ -341,6 +345,11 @@ def commit_batch(session: Session, batch: ImportBatch) -> None:
         batch.error_report_ref = get_store().put(batch.org_id, "import-errors", buf.getvalue().encode("utf-8"), ".csv")
     batch.counts = counts
     batch.status = "succeeded"
+    if spec.record_type in RECOVERY_TRIGGERS and (counts["inserted"] or counts["updated"]):
+        pending = session.scalar(select(Job.id).where(Job.org_id == batch.org_id, Job.kind == RECOVERY_JOB,
+                                                      Job.status == "queued").limit(1))
+        if pending is None:
+            jobs.enqueue(session, kind=RECOVERY_JOB, org_id=batch.org_id, payload={})
     batch.error = None
     audit.record(session, org_id=batch.org_id, actor_id=batch.created_by, action="import.completed",
                  entity="import_batch", entity_id=batch.id, payload={"record_type": batch.record_type, **counts})

@@ -20,6 +20,7 @@ from app.domains.cases.router import router as findings_router
 from app.domains.connectors.router import router as connectors_router
 from app.domains.contracts.router import router as agreements_router
 from app.domains.ingestion.router import imports_router, sources_router
+from app.domains.recovery.router import router as recovery_router
 from app.domains.ingestion.router import router as ingestion_router
 from app.domains.rules.router import router as rules_router
 from app.domains.rules.runs_router import router as runs_router
@@ -82,6 +83,7 @@ def create_app() -> FastAPI:
     app.include_router(runs_router)
     app.include_router(findings_router)
     app.include_router(corrections_router)
+    app.include_router(recovery_router)
     if settings.frontend_dist_path:
         dist = pathlib.Path(settings.frontend_dist_path).resolve()
         if (dist / "index.html").is_file():
