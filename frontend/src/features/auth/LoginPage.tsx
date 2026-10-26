@@ -4,6 +4,7 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import { ApiError } from "../../api/client";
 import { useAuth } from "./AuthContext";
 import { DemoAccounts } from "./DemoAccounts";
+import { Brand } from "../../components/Brand";
 
 export function LoginPage() {
   const { session, restoring, login } = useAuth();
@@ -35,9 +36,7 @@ export function LoginPage() {
   return (
     <div className="auth-wrap with-demo">
       <form className="card auth-card" onSubmit={submit}>
-        <div className="brand">
-          JAD<span>Assure</span>
-        </div>
+        <Brand />
         <p className="muted">Sign in to your organization.</p>
         <div className="field">
           <label htmlFor="email">Email</label>

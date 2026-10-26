@@ -48,7 +48,8 @@ a:hover { color: var(--black); }
 .shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100%; }
 .sidebar { background: var(--nav-bg); color: var(--nav-text); padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; }
 .brand { color: var(--nav-active); font-weight: 700; font-size: 18px; padding: 0 10px 18px; letter-spacing: 0.2px; }
-.brand span { color: var(--brand); }
+.brand-rest { color: var(--brand); }
+.brand-a { display: inline-block; background: #000; color: #fff; padding: 0 3px; margin: 0 1px; border-radius: 3px; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.35); }
 .nav-link { color: var(--nav-text); text-decoration: none; padding: 8px 10px; border-radius: 6px; }
 .nav-link { border-left: 3px solid transparent; }
 .nav-link:hover { background: rgb(255 255 255 / 0.06); color: var(--nav-active); }

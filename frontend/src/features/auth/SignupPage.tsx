@@ -3,6 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 
 import { ApiError } from "../../api/client";
 import { useAuth, type SignupInput } from "./AuthContext";
+import { Brand } from "../../components/Brand";
 
 const BUSINESS_TYPES: [string, string][] = [
   ["professional_services", "Professional services"],
@@ -43,9 +44,7 @@ export function SignupPage() {
   return (
     <div className="auth-wrap">
       <form className="card auth-card" onSubmit={submit}>
-        <div className="brand">
-          JAD<span>Assure</span>
-        </div>
+        <Brand />
         <p className="muted">Create an organization. You become its administrator.</p>
         <div className="field">
           <label htmlFor="org">Organization name</label>

@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../features/auth/AuthContext";
 import { NAV_AREAS, ROLE_LABELS } from "./nav";
+import { Brand } from "../components/Brand";
 
 export function Layout() {
   const { session, logout } = useAuth();
@@ -13,9 +14,7 @@ export function Layout() {
   return (
     <div className="shell">
       <nav className="sidebar" aria-label="Main">
-        <div className="brand">
-          JAD<span>Assure</span>
-        </div>
+        <Brand />
         {areas.map((area) => (
           <NavLink key={area.path} to={area.path} className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
             {area.label}
