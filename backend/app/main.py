@@ -18,6 +18,7 @@ from app.domains.audit.router import router as audit_router
 from app.domains.cases.router import corrections_router
 from app.domains.cases.router import router as findings_router
 from app.domains.connectors.router import router as connectors_router
+from app.domains.contracts.router import documents_router
 from app.domains.contracts.router import router as agreements_router
 from app.domains.ingestion.router import imports_router, sources_router
 from app.domains.recovery.router import router as recovery_router
@@ -80,6 +81,7 @@ def create_app() -> FastAPI:
     app.include_router(imports_router)
     app.include_router(jobs_api.router)
     app.include_router(agreements_router)
+    app.include_router(documents_router)
     app.include_router(rules_router)
     app.include_router(runs_router)
     app.include_router(findings_router)

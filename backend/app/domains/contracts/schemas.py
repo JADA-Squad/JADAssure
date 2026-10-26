@@ -55,3 +55,18 @@ class AgreementSummaryOut(BaseModel):
 
 class AgreementDetailOut(AgreementSummaryOut):
     versions: list[VersionOut]
+
+
+class DocumentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    agreement_id: uuid.UUID | None
+    filename: str
+    media_type: str
+    size_bytes: int
+    sha256: str
+    extraction_status: str
+    extraction_error: str | None
+    extraction_stats: dict[str, Any]
+    created_at: datetime

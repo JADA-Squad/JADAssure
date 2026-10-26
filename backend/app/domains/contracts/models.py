@@ -17,11 +17,16 @@ BILLING_FREQUENCIES = ("monthly", "quarterly", "annual", "per_event", "milestone
 TERM_TYPES = ("rate", "discount", "escalation", "credit_policy", "minimum")
 TERM_STATUSES = ("proposed", "confirmed", "rejected")
 TERM_ORIGINS = ("import", "extraction", "manual")
+EXTRACTION_STATUSES = ("queued", "running", "succeeded", "failed")
 
 
 class Document(IdMixin, TimestampMixin, OrgScopedMixin, Base):
     __tablename__ = "document"
+    __table_args__ = (one_of("extraction_status", EXTRACTION_STATUSES),)
 
+    agreement_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("agreement.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     filename: Mapped[str] = mapped_column(String(255))
     media_type: Mapped[str] = mapped_column(String(100))
     storage_key: Mapped[str] = mapped_column(String(255))
@@ -29,6 +34,10 @@ class Document(IdMixin, TimestampMixin, OrgScopedMixin, Base):
     size_bytes: Mapped[int] = mapped_column(BigInteger)
     uploaded_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     text_extracted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    extraction_status: Mapped[str] = mapped_column(String(20), default="queued")
+    extraction_error: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    # {"provider": ..., "proposed": n, "ambiguous": n, "discarded": n, "discard_reasons": [...]}
+    extraction_stats: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
 
 
 class Agreement(IdMixin, TimestampMixin, OrgScopedMixin, SourceMixin, Base):

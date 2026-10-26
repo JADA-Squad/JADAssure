@@ -2,14 +2,17 @@ import uuid
 from collections import Counter
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.core.db import get_session
 from app.core.tenancy import TenantContext, get_scoped, scoped
 from app.domains.access.permissions import Cap, require
-from app.domains.contracts.models import Agreement, AgreementVersion, CommercialTerm
-from app.domains.contracts.schemas import AgreementDetailOut, AgreementSummaryOut, TermOut, VersionOut
+from app.core.storage import get_store
+from app.domains.contracts import documents
+from app.domains.contracts.models import Agreement, AgreementVersion, CommercialTerm, Document
+from app.domains.contracts.schemas import AgreementDetailOut, AgreementSummaryOut, DocumentOut, TermOut, VersionOut
 from app.domains.contracts.terms import resolve_terms
 from app.domains.ingestion.models import Customer
 
@@ -86,3 +89,40 @@ def terms_in_effect(
     agreement = get_scoped(session, Agreement, agreement_id, ctx)
     return resolve_terms(session, ctx.org_id, agreement.id, on, item_code=item_code)
 
+
+
+# ---------------------------------------------------------------- contract documents (BE-027)
+
+@router.post("/{agreement_id}/documents", response_model=DocumentOut, status_code=status.HTTP_201_CREATED)
+async def upload_document(agreement_id: uuid.UUID, file: UploadFile = File(...),
+                          ctx: TenantContext = Depends(require(Cap.MANAGE_CONTRACTS)),
+                          session: Session = Depends(get_session)):
+    agreement = get_scoped(session, Agreement, agreement_id, ctx)
+    data = await file.read(documents.MAX_BYTES + 1)
+    if len(data) > documents.MAX_BYTES:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "File is larger than 10 MB")
+    doc = documents.upload(session, ctx, agreement, file.filename or "contract", data)
+    session.commit()
+    return doc
+
+
+@router.get("/{agreement_id}/documents", response_model=list[DocumentOut])
+def list_documents(agreement_id: uuid.UUID, ctx: TenantContext = ViewAgreements, session: Session = Depends(get_session)):
+    agreement = get_scoped(session, Agreement, agreement_id, ctx)
+    return list(session.scalars(scoped(Document, ctx).where(Document.agreement_id == agreement.id)
+                                .order_by(Document.created_at.desc())))
+
+
+documents_router = APIRouter(prefix="/api/documents", tags=["agreements"])
+
+
+@documents_router.get("/{document_id}/original", response_class=Response)
+def download_original(document_id: uuid.UUID, ctx: TenantContext = ViewAgreements,
+                      session: Session = Depends(get_session)):
+    doc = get_scoped(session, Document, document_id, ctx)
+    try:
+        data = get_store().get(doc.storage_key)
+    except FileNotFoundError:
+        raise HTTPException(status.HTTP_410_GONE, "The original file is no longer stored (retention)") from None
+    return Response(data, media_type=doc.media_type,
+                    headers={"Content-Disposition": 'attachment; filename="' + doc.filename.replace('"', "") + '"'})
