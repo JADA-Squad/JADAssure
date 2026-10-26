@@ -37,6 +37,8 @@ class DataSource(IdMixin, TimestampMixin, OrgScopedMixin, Base):
     kind: Mapped[str] = mapped_column(String(20))
     connector_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Connector settings, e.g. {"dataset": "cirrus-cloud"} for the demo connector (BE-009).
+    config: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     # {record_type: {source_column: canonical_field}}
     mapping: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
 
@@ -57,6 +59,9 @@ class ImportBatch(IdMixin, TimestampMixin, OrgScopedMixin, Base):
     error_report_ref: Mapped[str | None] = mapped_column(String(255), nullable=True)
     error: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     created_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    job_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("job.id", ondelete="SET NULL"), nullable=True
+    )
 
 
 class Customer(IdMixin, TimestampMixin, OrgScopedMixin, SourceMixin, Base):

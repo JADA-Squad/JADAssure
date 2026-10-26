@@ -8,6 +8,7 @@ from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.domains.access.router import auth_router, users_router
 from app.domains.audit.router import router as audit_router
+from app.domains.ingestion.router import imports_router, sources_router
 from app.domains.ingestion.router import router as ingestion_router
 
 
@@ -26,6 +27,8 @@ def create_app() -> FastAPI:
     app.include_router(users_router)
     app.include_router(audit_router)
     app.include_router(ingestion_router)
+    app.include_router(sources_router)
+    app.include_router(imports_router)
     app.include_router(jobs_api.router)
     return app
 

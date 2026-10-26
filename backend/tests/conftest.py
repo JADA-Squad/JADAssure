@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
-from app.core import db
+from app.core import db, storage
 from app.core.config import get_settings
 
 BACKEND_DIR = pathlib.Path(__file__).resolve().parents[1]
@@ -37,6 +37,13 @@ def test_database() -> Iterator[str]:
     subprocess.run(["alembic", "-x", f"url={url}", "upgrade", "head"], cwd=BACKEND_DIR, check=True, capture_output=True)
     db.configure_engine(url)
     yield url
+
+
+@pytest.fixture(scope="session", autouse=True)
+def temp_document_store(tmp_path_factory) -> Iterator[None]:
+    storage.set_store(storage.LocalDocumentStore(str(tmp_path_factory.mktemp("documents"))))
+    yield
+    storage.set_store(None)
 
 
 @pytest.fixture(autouse=True)
