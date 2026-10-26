@@ -10,6 +10,7 @@ import {
   formatDateTime,
   formatDecimal,
   formatMoney,
+  ROOT_CAUSE_LABELS,
 } from "../../components/format";
 import { useAuth } from "../auth/AuthContext";
 import { ActionsPanel } from "./ActionsPanel";
@@ -65,6 +66,14 @@ export function FindingDetailPage() {
         <div className="notice info-notice">
           <strong>Recommended next action:</strong> {f.recommended_action}
         </div>
+        {f.recurrence_of && (
+          <div className="notice">
+            <strong>Recurrence:</strong> the same issue was confirmed before for{" "}
+            {f.recurrence_of.period_start ? formatDate(f.recurrence_of.period_start) : "an earlier period"} (
+            <Link to={`/findings/${f.recurrence_of.id}`}>earlier finding</Link>, root cause:{" "}
+            {ROOT_CAUSE_LABELS[f.recurrence_of.root_cause_category ?? ""] ?? "not recorded"}). The fix may not have held.
+          </div>
+        )}
         {f.also_detected_by.length > 0 && (
           <p className="muted" style={{ margin: 0 }}>
             Also detected by: {f.also_detected_by.map((c) => CHECK_LABELS[c] ?? c).join(", ")}. Counted once.

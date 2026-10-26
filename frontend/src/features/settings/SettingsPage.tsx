@@ -14,6 +14,7 @@ interface OrgSettings {
   ai_provider: "stub" | "anthropic";
   ai_external_available: boolean;
   retention_days: number | null;
+  pricing_target_margin_pct: string;
 }
 
 interface AuditEvent {
@@ -172,6 +173,7 @@ function OrgSettingsCard() {
   const [interval, setInterval_] = useState("0");
   const [provider, setProvider] = useState<"stub" | "anthropic">("stub");
   const [retention, setRetention] = useState("");
+  const [margin, setMargin] = useState("20");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const s = settings.data;
   useEffect(() => {
@@ -179,6 +181,7 @@ function OrgSettingsCard() {
     setInterval_(String(s.refresh_interval_minutes));
     setProvider(s.ai_provider);
     setRetention(s.retention_days ? String(s.retention_days) : "");
+    setMargin(s.pricing_target_margin_pct);
   }, [s]);
   const save = useMutation({
     mutationFn: () =>
@@ -187,6 +190,7 @@ function OrgSettingsCard() {
         body: JSON.stringify({
           refresh_interval_minutes: Number(interval || 0),
           ai_provider: provider,
+          pricing_target_margin_pct: margin || "0",
           ...(retention ? { retention_days: Number(retention) } : { clear_retention: true }),
         }),
       }),
@@ -224,6 +228,10 @@ function OrgSettingsCard() {
               Claude (external AI){s.ai_external_available ? "" : " · not configured on this server"}
             </option>
           </select>
+        </label>
+        <label className="field">
+          <span>Target margin for pricing (%)</span>
+          <input inputMode="decimal" value={margin} onChange={(e) => setMargin(e.target.value.replace(/[^0-9.]/g, ""))} />
         </label>
         <label className="field">
           <span>Keep uploaded files for (days)</span>

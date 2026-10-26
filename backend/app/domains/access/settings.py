@@ -9,6 +9,7 @@ Settings live in organization.settings:
 """
 
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from typing import Any, Literal
 
 from fastapi import HTTPException, status
@@ -36,6 +37,7 @@ class SettingsOut(BaseModel):
     ai_provider: Literal["stub", "anthropic"]
     ai_external_available: bool  # is an external provider configured on this server?
     retention_days: int | None
+    pricing_target_margin_pct: Decimal
 
 
 class SettingsIn(BaseModel):
@@ -43,6 +45,7 @@ class SettingsIn(BaseModel):
     ai_provider: Literal["stub", "anthropic"] | None = None
     retention_days: int | None = Field(default=None, ge=30, le=3650)
     clear_retention: bool = False
+    pricing_target_margin_pct: Decimal | None = Field(default=None, ge=0, le=90)
 
 
 def read(org: Organization) -> SettingsOut:
@@ -52,6 +55,7 @@ def read(org: Organization) -> SettingsOut:
         refresh_interval_minutes=int(s.get("refresh_interval_minutes") or 0),
         ai_provider=s.get("ai_provider", "stub"), ai_external_available=external_available(),
         retention_days=s.get("retention_days"),
+        pricing_target_margin_pct=Decimal(str(s.get("pricing_target_margin_pct", "20"))),
     )
 
 
@@ -71,6 +75,8 @@ def update(session: Session, ctx: TenantContext, data: SettingsIn) -> SettingsOu
         changes["retention_days"] = None
     elif data.retention_days is not None:
         changes["retention_days"] = data.retention_days
+    if data.pricing_target_margin_pct is not None:
+        changes["pricing_target_margin_pct"] = format(data.pricing_target_margin_pct.normalize(), "f")
     changes = {k: v for k, v in changes.items() if current.get(k) != v}
     if changes:
         org.settings = {**current, **changes}

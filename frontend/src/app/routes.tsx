@@ -1,10 +1,10 @@
 import type { ReactElement } from "react";
 
-import { Placeholder } from "../components/Placeholder";
 import { AgreementsPage } from "../features/agreements/AgreementsPage";
 import { DataSetupPage } from "../features/data-setup/DataSetupPage";
 import { FindingsPage } from "../features/findings/FindingsPage";
 import { OverviewPage } from "../features/overview/OverviewPage";
+import { PricingPage } from "../features/pricing/PricingPage";
 import { RecoveryPage } from "../features/recovery/RecoveryPage";
 import { SettingsPage } from "../features/settings/SettingsPage";
 
@@ -15,12 +15,6 @@ export const PAGES: Record<string, ReactElement> = {
   "/agreements": <AgreementsPage />,
   "/findings": <FindingsPage />,
   "/recovery": <RecoveryPage />,
-  "/pricing": (
-    <Placeholder
-      title="Pricing opportunities"
-      description="Future pricing decisions supported by cost and margin data, kept separate from billing errors."
-      milestone="M5 (FE-008)"
-    />
-  ),
+  "/pricing": <PricingPage />,
   "/settings": <SettingsPage />,
 };

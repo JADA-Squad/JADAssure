@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.db import get_session
 from app.core.tenancy import TenantContext
 from app.domains.access.permissions import Cap, require
-from app.domains.reporting import service
+from app.domains.reporting import pricing, service
 
 router = APIRouter(prefix="/api/reports", tags=["reporting"])
 
@@ -58,3 +58,9 @@ class OutcomesOut(BaseModel):
 def outcomes(ctx: TenantContext = Depends(require(Cap.VIEW_REPORTS)), session: Session = Depends(get_session)):
     """The six outcome figures (FR-32), counts, 12-month trend and top root causes."""
     return service.outcomes(session, ctx.org_id)
+
+
+@router.get("/pricing-opportunities")
+def pricing_opportunities(ctx: TenantContext = Depends(require(Cap.VIEW_REPORTS)), session: Session = Depends(get_session)):
+    """FR-33: separate from every leakage figure; only items with cost data."""
+    return pricing.opportunities(session, ctx.org_id)

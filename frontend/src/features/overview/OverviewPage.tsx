@@ -18,7 +18,7 @@ interface CurrencyFigures {
 
 interface Outcomes {
   currencies: CurrencyFigures[];
-  counts: { open: number; awaiting_approval: number; in_recovery: number; recovered: number; rejected: number; total: number };
+  counts: { open: number; awaiting_approval: number; in_recovery: number; recovered: number; rejected: number; recurring: number; total: number };
   trend: TrendPoint[];
   root_causes: { category: string; currency: string; count: number; value: string }[];
   notes: Record<string, string>;
@@ -30,7 +30,7 @@ const TILES: { key: keyof Omit<CurrencyFigures, "currency" | "cash_recovered">; 
   { key: "confirmed", label: "Confirmed leakage", help: "Approved by a finance approver." },
   { key: "corrected_billing", label: "Corrected billing", help: "Invoiced with a correction reference. Not cash yet." },
   { key: "closed_without_recovery", label: "Closed without recovery", help: "Confirmed, then written off." },
-  { key: "prevented_recurrence", label: "Prevented recurrence", help: "Estimate; recurrence tracking arrives in M5." },
+  { key: "prevented_recurrence", label: "Prevented recurrence", help: "Estimate: confirmed issues × later months with no repeat." },
 ];
 
 /** Overview (FR-34): where revenue leaks, what's confirmed, and how much cash actually came back. */
@@ -86,6 +86,7 @@ export function OverviewPage() {
               ["in_recovery", "In recovery"],
               ["recovered", "Recovered"],
               ["rejected", "Rejected as not leakage"],
+              ["recurring", "Recurring issues"],
             ] as const
           ).map(([k, label]) => (
             <div key={k} className="tile">

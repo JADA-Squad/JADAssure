@@ -55,6 +55,7 @@ export interface FindingDetail extends FindingItem {
   proposer_name: string | null;
   correction: { id: string; reference: string; kind: string; status: string; amount: string; currency: string } | null;
   available_actions: string[];
+  recurrence_of: { id: string; check_type: string; status: string; period_start: string | null; root_cause_category: string | null; root_cause: string | null } | null;
   ai_summary: string | null;
   first_detected_at: string;
   last_checked_at: string;
