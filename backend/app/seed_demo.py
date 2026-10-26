@@ -7,7 +7,8 @@ per dataset loaded with that dataset's baseline files, and an empty "Manual uplo
 JM carries the professional-services and subscription-software datasets; Beyon carries
 distribution. Together they still cover all three business types (FR-42).
 
-Idempotent: an org that already exists is left untouched. With --remove-obsolete, demo-flagged
+Idempotent: an org that already exists is left as is, except that its demo users' passwords are
+reset to DEMO_PASSWORD if that constant changed. With --remove-obsolete, demo-flagged
 orgs that are no longer in DEMO_ORGS (e.g. the earlier Northwind/Cirrus/Ridgeline demo orgs) are
 deleted first. Orgs that aren't flagged is_demo are never touched.
 
@@ -26,14 +27,15 @@ import app.model_registry  # noqa: F401
 from app.core.db import new_session
 from app.core.tenancy import TenantContext
 from app.domains.access import service as access
-from app.domains.access.models import Organization
+from app.core.security import hash_password, verify_password
+from app.domains.access.models import Organization, User
 from app.domains.audit import service as audit
 from app.domains.audit.models import AuditEvent
 from app.domains.connectors import service as connectors
 from app.domains.ingestion import service as ingestion
 from app.domains.rules import config as rules_config
 
-DEMO_PASSWORD = "jadassure-demo-2026"
+DEMO_PASSWORD = "Password!23"
 
 
 @dataclass(frozen=True)
@@ -88,9 +90,26 @@ def remove_obsolete_demo_orgs(session: Session) -> list[str]:
     return [o.name for o in obsolete]
 
 
+def sync_demo_passwords(session: Session, org: Organization) -> int:
+    """Reset users of a demo-flagged org to DEMO_PASSWORD if it changed. Never touches non-demo orgs."""
+    if not org.is_demo:
+        return 0
+    changed = 0
+    for user in session.scalars(select(User).where(User.org_id == org.id)):
+        if not verify_password(DEMO_PASSWORD, user.password_hash):
+            user.password_hash = hash_password(DEMO_PASSWORD)
+            changed += 1
+    if changed:
+        audit.record(session, org_id=org.id, actor_id=None, action="demo.passwords_reset", entity="organization",
+                     entity_id=org.id, payload={"users": changed})
+    return changed
+
+
 def seed_org(session: Session, spec: DemoOrg) -> str:
-    if session.scalar(select(Organization).where(Organization.name == spec.name)):
-        return f"{spec.name}: already present, skipped"
+    existing = session.scalar(select(Organization).where(Organization.name == spec.name))
+    if existing:
+        changed = sync_demo_passwords(session, existing)
+        return f"{spec.name}: already present" + (f", {changed} demo passwords updated" if changed else ", skipped")
     org = access.create_organization(session, name=spec.name, business_type=spec.business_type, is_demo=True)
     audit.record(session, org_id=org.id, actor_id=None, action="organization.created", entity="organization",
                  entity_id=org.id, payload={"business_type": spec.business_type, "is_demo": True})

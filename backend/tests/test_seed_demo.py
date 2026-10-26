@@ -37,6 +37,23 @@ def test_seed_is_complete_clean_and_idempotent(client, session, capsys):
     assert demo_email("analyst", "beyon.com") == "financeanalyst@beyon.com"
 
 
+def test_changed_demo_password_is_applied_to_existing_demo_users(client, session, monkeypatch, capsys):
+    import app.seed_demo as seed_module
+
+    main([])
+    real = signup(client, "Real Customer Ltd")
+    monkeypatch.setattr(seed_module, "DEMO_PASSWORD", "Another-Pass-99")
+    assert main([]) == 0
+    assert "5 demo passwords updated" in capsys.readouterr().out
+    ok = client.post("/api/auth/login", json={"email": "admin@jm.com", "password": "Another-Pass-99"})
+    old = client.post("/api/auth/login", json={"email": "admin@jm.com", "password": DEMO_PASSWORD})
+    assert ok.status_code == 200 and old.status_code == 401
+    # Non-demo users keep their own passwords.
+    from tests.factories import PASSWORD
+
+    assert client.post("/api/auth/login", json={"email": real.email, "password": PASSWORD}).status_code == 200
+
+
 def test_remove_obsolete_only_touches_old_demo_orgs(client, session, capsys):
     from app.domains.access import service as access
 
