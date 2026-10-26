@@ -1,0 +1,7 @@
+term_id,version_id,item_code,term_type,value,unit,currency,effective_from,effective_to,approval_ref,max_value
+RS-T1,RS-V1,WIDGET-A,rate,12.50,unit,USD,2026-01-01,,,
+RS-T2,RS-V1,WIDGET-B,rate,30.00,unit,USD,2026-01-01,,,
+RS-T3,RS-V1,WIDGET-A,discount,10,pct,,2026-01-01,2026-03-31,PROMO-Q1,
+RS-T4,RS-V1,,credit_policy,500,,USD,2026-01-01,,CREDIT-POLICY-2026,2000
+RS-T5,RS-V2,WIDGET-A,rate,16.00,unit,CAD,2026-01-01,,,
+RS-T6,RS-V2,WIDGET-B,rate,39.00,unit,CAD,2026-01-01,,,

@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     worker_heartbeat_stale_seconds: int = 30
 
     document_store_path: str = "/data/documents"
+    demo_data_path: str = "/demo-data"
+    # Lists the seeded DEMO accounts on the login page. Local demos only; keep false anywhere shared.
+    show_demo_accounts: bool = False
 
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5-5"

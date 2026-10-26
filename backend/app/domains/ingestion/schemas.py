@@ -22,6 +22,7 @@ class DataSourceOut(BaseModel):
     kind: str
     connector_key: str | None
     is_demo: bool
+    config: dict[str, Any]
     mapping: dict[str, dict[str, str]]
     created_at: datetime
 
@@ -39,13 +40,15 @@ class ImportOut(BaseModel):
     error: str | None
     job_id: uuid.UUID | None
     has_error_report: bool = False
+    is_demo: bool = False
     created_at: datetime
     updated_at: datetime
 
     @classmethod
-    def build(cls, batch: Any) -> "ImportOut":
+    def build(cls, batch: Any, is_demo: bool = False) -> "ImportOut":
         out = cls.model_validate(batch)
         out.has_error_report = batch.error_report_ref is not None
+        out.is_demo = is_demo
         return out
 
 

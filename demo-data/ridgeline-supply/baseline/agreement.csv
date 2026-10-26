@@ -1,0 +1,3 @@
+agreement_id,customer_id,title,start_date,end_date,billing_frequency,currency
+RS-A1,RS-C1,Supply agreement,2026-01-01,,per_event,USD
+RS-A2,RS-C2,Supply agreement (Canada),2026-01-01,,per_event,CAD

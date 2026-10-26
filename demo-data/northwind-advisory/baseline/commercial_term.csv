@@ -1,0 +1,4 @@
+term_id,version_id,item_code,term_type,value,unit,currency,effective_from,effective_to,approval_ref,max_value
+NW-T1,NW-V1,SENIOR-CONSULT,rate,180,hour,USD,2026-01-01,,,
+NW-T2,NW-V1,ANALYST,rate,120,hour,USD,2026-01-01,,,
+NW-T3,NW-V2,DS-MILESTONE,rate,25000,milestone,USD,2026-02-01,,,

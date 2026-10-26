@@ -28,7 +28,7 @@ EXPECTED = {
     Cap.VIEW_AUDIT: {"admin", "approver"},
 }
 
-PUBLIC_ROUTES = {"/api/health", "/api/auth/signup", "/api/auth/login"}
+PUBLIC_ROUTES = {"/api/health", "/api/auth/signup", "/api/auth/login", "/api/auth/demo-accounts"}
 
 
 def test_matrix_matches_design():

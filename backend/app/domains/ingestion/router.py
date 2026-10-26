@@ -64,6 +64,11 @@ def download_template(record_type: RecordType, _: TenantContext = ManageData):
     )
 
 
+def _out(session: Session, batch: ImportBatch) -> ImportOut:
+    source = session.get(DataSource, batch.data_source_id)
+    return ImportOut.build(batch, is_demo=bool(source and source.is_demo))
+
+
 # ---------------------------------------------------------------- data sources
 
 @sources_router.get("", response_model=list[DataSourceOut])
@@ -97,7 +102,7 @@ async def upload_import(
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "File is larger than 10 MB")
     batch = service.start_import(session, ctx, source, record_type, file.filename or "upload.csv", data)
     session.commit()
-    return ImportOut.build(batch)
+    return _out(session, batch)
 
 
 # ---------------------------------------------------------------- imports
@@ -113,12 +118,12 @@ def list_imports(
     if data_source_id:
         stmt = stmt.where(ImportBatch.data_source_id == data_source_id)
     batches = session.scalars(stmt.order_by(ImportBatch.created_at.desc()).limit(limit))
-    return [ImportOut.build(b) for b in batches]
+    return [_out(session, b) for b in batches]
 
 
 @imports_router.get("/{import_id}", response_model=ImportOut)
 def get_import(import_id: uuid.UUID, ctx: TenantContext = ManageData, session: Session = Depends(get_session)):
-    return ImportOut.build(get_scoped(session, ImportBatch, import_id, ctx))
+    return _out(session, get_scoped(session, ImportBatch, import_id, ctx))
 
 
 @imports_router.put("/{import_id}/mapping", response_model=ImportOut)
@@ -127,14 +132,14 @@ def update_mapping(
 ):
     batch = service.set_mapping(session, ctx, get_scoped(session, ImportBatch, import_id, ctx), data.mapping)
     session.commit()
-    return ImportOut.build(batch)
+    return _out(session, batch)
 
 
 @imports_router.post("/{import_id}/commit", response_model=ImportOut)
 def commit_import(import_id: uuid.UUID, ctx: TenantContext = ManageData, session: Session = Depends(get_session)):
     batch = service.request_commit(session, ctx, get_scoped(session, ImportBatch, import_id, ctx))
     session.commit()
-    return ImportOut.build(batch)
+    return _out(session, batch)
 
 
 @imports_router.get("/{import_id}/errors.csv", response_class=Response)

@@ -1,13 +1,15 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.db import get_session
 from app.core.tenancy import TenantContext, current_context
 from app.domains.access import service
-from app.domains.access.models import User
+from app.domains.access.models import Organization, User
 from app.domains.access.permissions import Cap, require
 from app.domains.access.schemas import LoginIn, MeOut, SignupIn, TokenOut, UserCreateIn, UserOut, UserUpdateIn
 
@@ -25,6 +27,30 @@ def signup(data: SignupIn, session: Session = Depends(get_session)):
 @auth_router.post("/login", response_model=TokenOut)
 def login(data: LoginIn, session: Session = Depends(get_session)):
     return service.login(session, data.email, data.password)
+
+
+class DemoAccountOut(BaseModel):
+    organization: str
+    name: str
+    email: str
+    role: str
+    password: str
+
+
+@auth_router.get("/demo-accounts", response_model=list[DemoAccountOut])
+def demo_accounts(session: Session = Depends(get_session)):
+    """Seeded DEMO logins for local demos (DATA-001). Empty unless SHOW_DEMO_ACCOUNTS=true; demo orgs only."""
+    if not get_settings().show_demo_accounts:
+        return []
+    from app.seed_demo import DEMO_PASSWORD
+
+    rows = session.execute(
+        select(Organization.name, User.name, User.email, User.role)
+        .join(User, User.org_id == Organization.id)
+        .where(Organization.is_demo.is_(True), User.active.is_(True))
+        .order_by(Organization.name, User.role)
+    ).all()
+    return [DemoAccountOut(organization=o, name=n, email=e, role=r, password=DEMO_PASSWORD) for o, n, e, r in rows]
 
 
 @auth_router.get("/me", response_model=MeOut)

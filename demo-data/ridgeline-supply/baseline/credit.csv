@@ -1,0 +1,4 @@
+credit_id,customer_id,invoice_id,amount,currency,reason_code,approval_ref,credit_date
+RS-CR-1,RS-C1,RS-I-1005,750.00,USD,DAMAGED-GOODS,,2026-03-20
+RS-CR-2,RS-C1,RS-I-1020A,120.00,USD,,,2026-06-25
+RS-CR-3,RS-C1,RS-I-1031,300.00,USD,LATE-DELIVERY,,2026-07-20

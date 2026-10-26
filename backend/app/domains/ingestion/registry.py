@@ -46,9 +46,11 @@ def _id(name: str, label: str) -> FieldSpec:
     return FieldSpec(name, "id", True, f"Unique {label} identifier in the source system")
 
 
-def _ref(name: str, ref: str, required: bool = True, description: str = "", attr: str | None = None) -> FieldSpec:
+def _ref(name: str, ref: str, required: bool = True, description: str = "", attr: str | None = None,
+         synonyms: tuple[str, ...] = ()) -> FieldSpec:
     return FieldSpec(
-        name, "ref", required, description or f"{ref.replace('_', ' ')} id from the source system", attr=attr, ref=ref
+        name, "ref", required, description or f"{ref.replace('_', ' ')} id from the source system", attr=attr, ref=ref,
+        synonyms=synonyms,
     )
 
 
@@ -100,13 +102,14 @@ RECORDS: dict[str, RecordSpec] = {
         RecordSpec("billable_event", "Billable events (deliveries)", (
             _id("event_id", "billable event"),
             _ref("customer_id", "customer"),
-            _ref("agreement_id", "agreement", required=False),
+            _ref("agreement_id", "agreement", required=False, synonyms=("contract", "contract_id")),
             FieldSpec("item_code", "str", True, "Product/service code", synonyms=("sku", "product_code", "service_code")),
             FieldSpec("quantity", "decimal", True, "Delivered quantity", synonyms=("qty", "hours", "units")),
             FieldSpec("unit", "str", False, "e.g. hour, seat, unit"),
             FieldSpec("service_date", "date", True, "Date the work/usage/delivery happened",
                       synonyms=("delivery_date", "ship_date", "work_date")),
-            FieldSpec("billing_date", "date", False, "Date this event should have been billed by"),
+            FieldSpec("billing_date", "date", False, "Date this event should have been billed by",
+                      synonyms=("bill_by", "bill_date")),
             CURRENCY,
         ), depends_on=("customer", "agreement")),
         RecordSpec("invoice", "Invoices", (

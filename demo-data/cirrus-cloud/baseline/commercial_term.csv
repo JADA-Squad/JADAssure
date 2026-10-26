@@ -1,0 +1,6 @@
+term_id,version_id,item_code,term_type,value,unit,currency,effective_from,effective_to,approval_ref,max_value
+CC-T1,CC-V1,PLATFORM-SEAT,rate,45,seat,USD,2026-01-01,,,
+CC-T2,CC-V2,PLATFORM-SEAT,rate,45,seat,USD,2026-07-01,,,
+CC-T3,CC-V2,PLATFORM-SEAT,escalation,5,pct,,2026-07-01,,RENEWAL-2026,
+CC-T4,CC-V3,PLATFORM-SEAT,rate,50,seat,USD,2026-01-01,,,
+CC-T5,CC-V3,PLATFORM-SEAT,discount,10,pct,,2026-01-01,2026-12-31,APP-77,

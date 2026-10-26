@@ -1,0 +1,4 @@
+version_id,agreement_id,version_no,effective_from,effective_to,reason
+CC-V1,CC-A1,1,2026-01-01,2026-06-30,Initial term
+CC-V2,CC-A1,2,2026-07-01,,Renewal: 5% escalation on seats
+CC-V3,CC-A2,1,2026-01-01,,Initial term

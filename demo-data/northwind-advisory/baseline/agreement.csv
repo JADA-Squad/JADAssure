@@ -1,0 +1,3 @@
+agreement_id,customer_id,title,start_date,end_date,billing_frequency,currency
+NW-A1,NW-C1,Transformation advisory MSA,2026-01-01,,monthly,USD
+NW-A2,NW-C2,Data strategy SOW,2026-02-01,2026-12-31,milestone,USD

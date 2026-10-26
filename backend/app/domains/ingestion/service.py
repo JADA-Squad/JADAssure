@@ -261,10 +261,15 @@ def _row_errors(spec: RecordSpec, inverse: dict[str, str], row: dict[str, str]) 
 
 
 def process_import(session: Session, job: Job) -> None:
-    """Job handler: validate every row and upsert canonical records (FR-07, FR-08)."""
+    """Job handler for import_commit."""
     batch = session.get(ImportBatch, uuid.UUID(job.payload["import_id"]))
     if batch is None or batch.org_id != job.org_id:
         raise jobs.JobError("Import batch not found")
+    commit_batch(session, batch)
+
+
+def commit_batch(session: Session, batch: ImportBatch) -> None:
+    """Validate every row and upsert canonical records (FR-07, FR-08). Runs in the caller's transaction."""
     source = session.get(DataSource, batch.data_source_id)
     spec = RECORDS[batch.record_type]
     model = MODELS[batch.record_type]

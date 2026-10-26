@@ -1,0 +1,5 @@
+cost_id,item_code,unit_cost,currency,effective_from,effective_to
+RS-K1,WIDGET-A,11.80,USD,2026-01-01,
+RS-K2,WIDGET-B,21.00,USD,2026-01-01,
+RS-K3,WIDGET-A,13.50,CAD,2026-01-01,
+RS-K4,WIDGET-B,27.00,CAD,2026-01-01,
