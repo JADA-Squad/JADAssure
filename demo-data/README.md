@@ -43,6 +43,13 @@ Values are net of tax, in the invoice currency.
 | — | ridgeline | Credit `RS-CR-1` 750.00 above the 500 approval threshold with no approval reference | credit_outside_policy | **750.00 USD** |
 | — | ridgeline | Credit `RS-CR-2` 120.00 with no reason code | credit_outside_policy | **120.00 USD** |
 
+**Only after confirming the extracted amendment term** (scenario 4, M4): upload
+`northwind-advisory/contracts/orchard-sow-amendment-1.txt` to the Orchard *Data strategy SOW* in JM
+and confirm the proposed "Senior consultant rate: USD 195.00 per hour" term. The next check run then
+raises two `incorrect_rate` findings on Orchard's August and September advisory invoices:
+20 × 15 = **300.00 USD** and 16 × 15 = **240.00 USD**. Before confirmation those lines have no
+confirmed rate and are skipped (GR-03).
+
 **Must NOT produce findings** (each guards a matching rule):
 
 - Cirrus/Northgate: an authorized 10% discount (`CC-T5`, approval APP-77) applied all year.

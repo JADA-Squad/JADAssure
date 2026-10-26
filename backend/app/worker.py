@@ -5,6 +5,7 @@ import os
 import signal
 import socket
 import threading
+import time
 from datetime import UTC, datetime
 
 from sqlalchemy.dialects.postgresql import insert
@@ -16,6 +17,7 @@ from app.core.config import get_settings
 from app.core.db import new_session
 from app.core.logging import configure_logging
 from app.core.models import WorkerHeartbeat
+from app.domains.access import settings as org_settings
 from app.domains.rules import engine as rules_engine
 
 log = logging.getLogger("jadassure.worker")
@@ -29,10 +31,19 @@ def beat(worker_id: str) -> None:
         session.commit()
 
 
+_last_purge: float = 0.0
+
+
 def schedule() -> None:
-    """Queue scheduled check runs that are due (FR-10). Cheap; runs every loop."""
+    """Queue scheduled check runs that are due (FR-10); purge expired files hourly (FR-41)."""
+    global _last_purge
     with new_session() as session:
         if rules_engine.enqueue_due(session):
+            session.commit()
+    if time.monotonic() - _last_purge > 3600:
+        _last_purge = time.monotonic()
+        with new_session() as session:
+            org_settings.purge_expired_files(session)
             session.commit()
 
 

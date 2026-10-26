@@ -1,6 +1,7 @@
 import uuid
 from collections import Counter
 from datetime import date
+from typing import Literal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
@@ -10,9 +11,18 @@ from app.core.db import get_session
 from app.core.tenancy import TenantContext, get_scoped, scoped
 from app.domains.access.permissions import Cap, require
 from app.core.storage import get_store
-from app.domains.contracts import documents
+from app.domains.contracts import documents, extraction
 from app.domains.contracts.models import Agreement, AgreementVersion, CommercialTerm, Document
-from app.domains.contracts.schemas import AgreementDetailOut, AgreementSummaryOut, DocumentOut, TermOut, VersionOut
+from app.domains.contracts.schemas import (
+    AgreementDetailOut,
+    AgreementSummaryOut,
+    ConfirmTermIn,
+    DocumentOut,
+    RejectTermIn,
+    TermOut,
+    TermReviewOut,
+    VersionOut,
+)
 from app.domains.contracts.terms import resolve_terms
 from app.domains.ingestion.models import Customer
 
@@ -102,6 +112,7 @@ async def upload_document(agreement_id: uuid.UUID, file: UploadFile = File(...),
     if len(data) > documents.MAX_BYTES:
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "File is larger than 10 MB")
     doc = documents.upload(session, ctx, agreement, file.filename or "contract", data)
+    extraction.request_extraction(session, ctx, doc)  # proposals only; a person confirms each term
     session.commit()
     return doc
 
@@ -126,3 +137,68 @@ def download_original(document_id: uuid.UUID, ctx: TenantContext = ViewAgreement
         raise HTTPException(status.HTTP_410_GONE, "The original file is no longer stored (retention)") from None
     return Response(data, media_type=doc.media_type,
                     headers={"Content-Disposition": 'attachment; filename="' + doc.filename.replace('"', "") + '"'})
+
+
+
+@documents_router.post("/{document_id}/extract", response_model=DocumentOut)
+def extract_again(document_id: uuid.UUID, ctx: TenantContext = Depends(require(Cap.MANAGE_CONTRACTS)),
+                  session: Session = Depends(get_session)):
+    doc = get_scoped(session, Document, document_id, ctx)
+    if doc.extraction_status in ("queued", "running"):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Extraction is already in progress")
+    extraction.request_extraction(session, ctx, doc)
+    session.commit()
+    return doc
+
+
+# ---------------------------------------------------------------- term review (BE-030)
+
+terms_router = APIRouter(prefix="/api/terms", tags=["agreements"])
+
+
+def _review_rows(session: Session, ctx: TenantContext, term_ids: list[uuid.UUID] | None = None,
+                 status_: str | None = None) -> list[TermReviewOut]:
+    from app.domains.ingestion.models import Customer
+
+    stmt = (scoped(CommercialTerm, ctx)
+            .add_columns(AgreementVersion.version_no, Agreement.id, Agreement.title, Customer.name)
+            .join(AgreementVersion, AgreementVersion.id == CommercialTerm.agreement_version_id)
+            .join(Agreement, Agreement.id == AgreementVersion.agreement_id)
+            .join(Customer, Customer.id == Agreement.customer_id))
+    if term_ids is not None:
+        stmt = stmt.where(CommercialTerm.id.in_(term_ids))
+    if status_:
+        stmt = stmt.where(CommercialTerm.status == status_)
+    docs = {d.id: d.filename for d in session.scalars(scoped(Document, ctx))}
+    out = []
+    for term, version_no, agreement_id, title, customer in session.execute(
+            stmt.order_by(Agreement.title, CommercialTerm.effective_from, CommercialTerm.term_type)):
+        out.append(TermReviewOut(**TermOut.model_validate(term).model_dump(), agreement_id=agreement_id,
+                                 agreement_title=title, customer_name=customer, version_no=version_no,
+                                 document_id=term.document_id, document_filename=docs.get(term.document_id)))
+    return out
+
+
+@terms_router.get("", response_model=list[TermReviewOut])
+def list_terms(status_: Literal["proposed", "confirmed", "rejected"] | None = Query("proposed", alias="status"),
+               ctx: TenantContext = ViewAgreements, session: Session = Depends(get_session)):
+    return _review_rows(session, ctx, status_=status_)
+
+
+@terms_router.post("/{term_id}/confirm", response_model=TermReviewOut)
+def confirm_term(term_id: uuid.UUID, data: ConfirmTermIn, ctx: TenantContext = Depends(require(Cap.MANAGE_CONTRACTS)),
+                 session: Session = Depends(get_session)):
+    edits = data.model_dump(exclude_none=True, exclude={"note", "clear_effective_to"})
+    if data.clear_effective_to:
+        edits["effective_to"] = None
+    extraction.confirm(session, ctx, term_id, edits, data.note)
+    session.commit()
+    return _review_rows(session, ctx, [term_id])[0]
+
+
+@terms_router.post("/{term_id}/reject", response_model=TermReviewOut)
+def reject_term(term_id: uuid.UUID, data: RejectTermIn, ctx: TenantContext = Depends(require(Cap.MANAGE_CONTRACTS)),
+                session: Session = Depends(get_session)):
+    extraction.reject(session, ctx, term_id, data.reason)
+    session.commit()
+    return _review_rows(session, ctx, [term_id])[0]

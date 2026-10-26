@@ -154,6 +154,20 @@ def northwind() -> Dataset:
         ])
         if paid:
             d.pay(f"NW-P-MS{n}", "NW-C2", inv, due + timedelta(days=40), "USD")
+
+    # Scenario 4: ad hoc senior advisory hours for Orchard from August, billed at the old 180/hour.
+    # The amendment (contracts/orchard-sow-amendment-1.txt) sets 195/hour from 1 August, but until
+    # someone confirms that extracted term there is no confirmed Orchard rate, so the engine raises
+    # nothing. After confirmation, a re-run finds the shortfall (GR-03).
+    for m, hours in ((8, 20), (9, 16)):
+        end = month_end(2026, m)
+        d.add("billable_event", event_id=f"NW-E-ORCH-2026{m:02}", customer_id="NW-C2", agreement_id="NW-A2",
+              item_code="SENIOR-CONSULT", quantity=hours, unit="hour", service_date=end, billing_date=end,
+              currency="USD")
+        d.invoice(f"NW-I-ORCH-2026{m:02}", "NW-C2", f"NWA-O{m:02}", end + timedelta(days=3), "USD", [
+            {"agreement_id": "NW-A2", "item_code": "SENIOR-CONSULT", "quantity": hours, "unit_price": "180",
+             "start": end, "end": end},
+        ])
     return d
 
 

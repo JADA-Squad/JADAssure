@@ -6,6 +6,7 @@ S3/Azure later means adding one class with the same three methods.
 
 import pathlib
 import re
+import shutil
 import uuid
 from functools import lru_cache
 from typing import Protocol
@@ -19,6 +20,7 @@ class DocumentStore(Protocol):
     def put(self, org_id: uuid.UUID, namespace: str, data: bytes, suffix: str = "") -> str: ...
     def get(self, key: str) -> bytes: ...
     def delete(self, key: str) -> None: ...
+    def delete_org(self, org_id: uuid.UUID) -> int: ...
 
 
 class LocalDocumentStore:
@@ -44,10 +46,22 @@ class LocalDocumentStore:
         return key
 
     def get(self, key: str) -> bytes:
+        if key == "purged":  # removed by retention (access.settings.purge_expired_files)
+            raise FileNotFoundError(key)
         return self._path(key).read_bytes()
 
     def delete(self, key: str) -> None:
-        self._path(key).unlink(missing_ok=True)
+        if key != "purged":
+            self._path(key).unlink(missing_ok=True)
+
+    def delete_org(self, org_id: uuid.UUID) -> int:
+        """Remove every stored file of an organization (FR-41). Returns the number of files removed."""
+        folder = (self.root / str(org_id)).resolve()
+        if self.root not in folder.parents or not folder.is_dir():
+            return 0
+        count = sum(1 for p in folder.rglob("*") if p.is_file())
+        shutil.rmtree(folder)
+        return count
 
 
 _override: DocumentStore | None = None

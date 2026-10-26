@@ -9,6 +9,7 @@ from app.core.config import get_settings
 from app.core.db import get_session
 from app.core.tenancy import TenantContext, current_context
 from app.domains.access import service
+from app.domains.access import settings as org_settings
 from app.domains.access.models import Organization, User
 from app.domains.access.permissions import Cap, require
 from app.domains.access.schemas import LoginIn, MeOut, SignupIn, TokenOut, UserCreateIn, UserOut, UserUpdateIn
@@ -82,3 +83,35 @@ def update_user(
     session: Session = Depends(get_session),
 ):
     return service.update_user(session, ctx, user_id, data)
+
+
+# ---------------------------------------------------------------- settings (BE-032)
+
+settings_router = APIRouter(prefix="/api/settings", tags=["settings"])
+
+
+class DeleteDataIn(BaseModel):
+    confirm_short_code: str
+
+
+@settings_router.get("", response_model=org_settings.SettingsOut)
+def get_settings_(ctx: TenantContext = Depends(require(Cap.MANAGE_USERS_SETTINGS)),
+                  session: Session = Depends(get_session)):
+    return org_settings.read(session.get(Organization, ctx.org_id))
+
+
+@settings_router.put("", response_model=org_settings.SettingsOut)
+def update_settings(data: org_settings.SettingsIn, ctx: TenantContext = Depends(require(Cap.MANAGE_USERS_SETTINGS)),
+                    session: Session = Depends(get_session)):
+    out = org_settings.update(session, ctx, data)
+    session.commit()
+    return out
+
+
+@settings_router.post("/delete-organization-data")
+def delete_organization_data(data: DeleteDataIn, ctx: TenantContext = Depends(require(Cap.MANAGE_USERS_SETTINGS)),
+                             session: Session = Depends(get_session)):
+    """FR-41: irreversible. Removes every record and file of the org; all its users are signed out."""
+    result = org_settings.delete_organization_data(session, ctx, data.confirm_short_code)
+    session.commit()
+    return result
