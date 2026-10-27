@@ -147,7 +147,7 @@ All imports are untrusted input (GR-07) and are validated at the boundary.
 | ID | Requirement | Verify |
 |---|---|---|
 | FR-01 | A new organization can be created together with its first administrator account. | Auto |
-| FR-02 | An administrator can create users, assign exactly one of the five roles, and deactivate users. | Auto |
+| FR-02 | An administrator can create users, assign exactly one of the five roles, correct a user's name and email, and deactivate users. | Auto |
 | FR-03 | Every API operation is permitted or denied according to the role permission matrix in the solution design. | Auto |
 
 ### Data intake

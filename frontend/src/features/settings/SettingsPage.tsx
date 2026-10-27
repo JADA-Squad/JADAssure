@@ -66,9 +66,20 @@ function UsersCard() {
     onError: fail,
   });
   const update = useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: Partial<Pick<User, "role" | "active">> }) =>
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<Pick<User, "name" | "email" | "role" | "active">> }) =>
       api<User>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
     onSuccess: done,
+    onError: fail,
+  });
+  // Correcting a mistyped name or email; one row at a time.
+  const [editing, setEditing] = useState<{ id: string; name: string; email: string } | null>(null);
+  const saveEdit = useMutation({
+    mutationFn: (e: { id: string; name: string; email: string }) =>
+      api<User>(`/users/${e.id}`, { method: "PATCH", body: JSON.stringify({ name: e.name, email: e.email }) }),
+    onSuccess: () => {
+      setEditing(null);
+      done();
+    },
     onError: fail,
   });
 
@@ -88,18 +99,41 @@ function UsersCard() {
             <th>Email</th>
             <th>Role</th>
             <th>Status</th>
+            <th aria-label="Actions" />
           </tr>
         </thead>
         <tbody>
           {(users.data ?? []).map((u) => {
             const self = u.id === session?.me.user.id;
+            const edit = editing?.id === u.id ? editing : null;
             return (
               <tr key={u.id}>
                 <td>
-                  {u.name}
-                  {self && <span className="muted"> (you)</span>}
+                  {edit ? (
+                    <input
+                      aria-label={`Name for ${u.name}`}
+                      value={edit.name}
+                      onChange={(e) => setEditing({ ...edit, name: e.target.value })}
+                    />
+                  ) : (
+                    <>
+                      {u.name}
+                      {self && <span className="muted"> (you)</span>}
+                    </>
+                  )}
                 </td>
-                <td className="mono">{u.email}</td>
+                <td className="mono">
+                  {edit ? (
+                    <input
+                      aria-label={`Email for ${u.name}`}
+                      type="email"
+                      value={edit.email}
+                      onChange={(e) => setEditing({ ...edit, email: e.target.value })}
+                    />
+                  ) : (
+                    u.email
+                  )}
+                </td>
                 <td>
                   <select
                     aria-label={`Role for ${u.name}`}
@@ -124,6 +158,33 @@ function UsersCard() {
                     />
                     {u.active ? "Active" : "Deactivated"}
                   </label>
+                </td>
+                <td>
+                  {edit ? (
+                    <div className="row" style={{ gap: 6, flexWrap: "nowrap" }}>
+                      <button
+                        className="btn small primary"
+                        disabled={saveEdit.isPending || !edit.name.trim() || !edit.email.trim()}
+                        onClick={() => saveEdit.mutate(edit)}
+                      >
+                        Save
+                      </button>
+                      <button className="btn small" onClick={() => setEditing(null)}>
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="btn small"
+                      aria-label={`Edit ${u.name}`}
+                      onClick={() => {
+                        setError(null);
+                        setEditing({ id: u.id, name: u.name, email: u.email });
+                      }}
+                    >
+                      Edit
+                    </button>
+                  )}
                 </td>
               </tr>
             );

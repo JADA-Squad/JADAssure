@@ -113,17 +113,29 @@ def create_user(session: Session, ctx: TenantContext, data: UserCreateIn) -> Use
 
 
 def update_user(session: Session, ctx: TenantContext, user_id: uuid.UUID, data: UserUpdateIn) -> User:
-    """FR-02: re-role or deactivate. Admins can't lock themselves out."""
+    """FR-02: re-role, deactivate, or correct a name/email. Admins can't lock themselves out."""
     user = get_scoped(session, User, user_id, ctx)
     changes = data.model_dump(exclude_unset=True, exclude_none=True)
     if user.id == ctx.user_id and (changes.get("active") is False or changes.get("role", "admin") != "admin"):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "You cannot deactivate or demote your own account")
+    if "name" in changes:
+        changes["name"] = changes["name"].strip()
+        if not changes["name"]:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Name can't be blank")
+    if "email" in changes:
+        changes["email"] = _normalize_email(changes["email"])
+        if changes["email"] != user.email and _email_taken(session, changes["email"]):
+            raise HTTPException(status.HTTP_409_CONFLICT, "A user with this email already exists")
+    changes = {k: v for k, v in changes.items() if getattr(user, k) != v}
     for field, value in changes.items():
         setattr(user, field, value)
     if changes:
+        # Role/active values are recorded; name and email are personal data, so only the fact they changed (GR-15).
+        payload = {k: v for k, v in changes.items() if k in ("role", "active")}
+        payload["changed"] = sorted(changes)
         audit.record(
             session, org_id=ctx.org_id, actor_id=ctx.user_id, action="user.updated", entity="user",
-            entity_id=user.id, payload={k: v for k, v in changes.items() if k in ("role", "active")},
+            entity_id=user.id, payload=payload,
         )
     session.commit()
     return user

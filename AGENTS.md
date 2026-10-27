@@ -119,7 +119,7 @@ docs/                  requirements, design, summary, task board, decisions, RUN
 
 | Folder | Scope | Task IDs |
 |---|---|---|
-| `access` | orgs, users, roles, auth, permissions, tenant scoping, settings, retention | BE-002, BE-003, BE-032 |
+| `access` | orgs, users, roles, auth, permissions, tenant scoping, settings, retention | BE-002, BE-003, BE-032, BE-033 |
 | `audit` | hash-chained audit log + verify | BE-004 |
 | `ingestion` | field registry, templates, data sources, mapping, profiling, import commit | BE-005, BE-006, BE-007 |
 | `connectors` | connector interface, demo connector | BE-009 |

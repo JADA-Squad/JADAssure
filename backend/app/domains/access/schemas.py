@@ -66,5 +66,6 @@ class UserCreateIn(BaseModel):
 
 class UserUpdateIn(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
+    email: EmailStr | None = None
     role: Role | None = None
     active: bool | None = None

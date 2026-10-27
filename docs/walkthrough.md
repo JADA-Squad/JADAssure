@@ -126,7 +126,8 @@ Sign in as `executive@jm.com` → **Overview**:
 
 Sign in as `admin@jm.com` → **Access & settings**:
 
-- **Users & roles**: add a user, change a role, deactivate.
+- **Users & roles**: add a user, change a role, deactivate, and **Edit** to correct a mistyped
+  name or email (the user then signs in with the corrected email).
 - **Contract term reading**: external AI (Claude) is off by default and needs an API key in the
   server config. The built-in offline reader is used otherwise.
 - **Scheduled runs**, **retention** and **pricing target margin**.

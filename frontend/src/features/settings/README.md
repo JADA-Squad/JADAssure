@@ -1,6 +1,7 @@
 # settings
 
-**Built (M4):** FE-009. Users & roles (re-role, deactivate, add), organization settings
+**Built (M4):** FE-009. Users & roles (re-role, deactivate, add, and **Edit** to correct a name or
+email, BE-033), organization settings
 (scheduled runs, contract reading provider with the external option disabled when not configured,
 retention), audit history with chain verification, and organization data deletion behind
 type-the-code confirmation. Approvers see the audit history only. Verified in a browser.
