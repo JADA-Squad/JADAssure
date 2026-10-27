@@ -1,7 +1,7 @@
 DEMO DOCUMENT - SYNTHETIC DATA - NOT A REAL CONTRACT
 
 AMENDMENT No. 1 TO STATEMENT OF WORK "DATA STRATEGY"
-between Northwind Advisory LLC ("Supplier") and Orchard Health Partners ("Client")
+between JM ("Supplier") and Orchard Health Partners ("Client")
 Agreement reference: NW-A2
 
 1. Effective date

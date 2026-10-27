@@ -8,9 +8,9 @@
 | Supersedes | The three demo org names in decision 0002 and demo-data/README.md |
 
 **D-1. Two demo orgs, three business types.** At the owner's request the demo orgs are **JM** and
-**Beyon**. JM carries the professional-services (`northwind-advisory`) and subscription-software
-(`cirrus-cloud`) datasets, each through its own labelled demo connector source. Beyon carries
-distribution (`ridgeline-supply`). All eight acceptance scenarios keep their data, and FR-42's
+**Beyon**. JM carries the professional-services (`jm-advisory`) and subscription-software
+(`jm-subscriptions`) datasets, each through its own labelled demo connector source. Beyon carries
+distribution (`beyon-distribution`). All eight acceptance scenarios keep their data, and FR-42's
 "three business types" still holds. DATA-001's acceptance wording was updated to match. JM's
 `business_type` is `professional_services`, which sets its default grace days; the subscription
 data produces no unbilled findings, so the outcome is unchanged.

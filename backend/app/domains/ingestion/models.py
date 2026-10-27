@@ -37,7 +37,7 @@ class DataSource(IdMixin, TimestampMixin, OrgScopedMixin, Base):
     kind: Mapped[str] = mapped_column(String(20))
     connector_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
-    # Connector settings, e.g. {"dataset": "cirrus-cloud"} for the demo connector (BE-009).
+    # Connector settings, e.g. {"dataset": "jm-subscriptions"} for the demo connector (BE-009).
     config: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     # {record_type: {source_column: canonical_field}}
     mapping: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)

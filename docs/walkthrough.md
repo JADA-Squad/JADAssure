@@ -28,7 +28,7 @@ Sign in as `admin@beyon.com`.
 1. **Data setup** → *Demo connector*. The baseline is already loaded. **Sync now** re-syncs it:
    every record type reports 0 inserted, 0 updated. Re-imports never duplicate (scenario 7).
 2. *Manual uploads* → record type **Billable events** → choose
-   `demo-data/ridgeline-supply/manual/shipments-september.csv` → **Upload & check**.
+   `demo-data/beyon-distribution/manual/shipments-september.csv` → **Upload & check**.
    The profile shows rows, new vs existing ids, and which required fields are missing.
 3. Two columns aren't mapped. **Suggest mappings** proposes `Account → customer_id` (every value
    matches an existing customer) and `Shipment Ref → event_id` (unique identifiers). It's labelled
@@ -87,7 +87,7 @@ finding and its root cause. The stock demo data has no such later period. The au
 
 Sign in as `commercialmanager@jm.com` → **Rules & agreements** → *Data strategy SOW* (Orchard).
 
-1. Upload `demo-data/northwind-advisory/contracts/orchard-sow-amendment-1.txt`. Three terms are
+1. Upload `demo-data/jm-advisory/contracts/orchard-sow-amendment-1.txt`. Three terms are
    proposed, each beside the passage it came from:
    - Senior consultant rate 195.00/hour: clear.
    - Analyst rate 130.00: **held** as ambiguous ("subject to a further agreement").

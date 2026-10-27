@@ -438,9 +438,9 @@ different configuration:
 
 | Org | Business type | Billable unit | Billing frequency | Scenarios planted |
 |---|---|---|---|---|
-| JM (dataset `northwind-advisory`) | Professional services | consultant hours, milestones | monthly, milestone | 1 unbilled hours, 4 ambiguous contract term, 5 rejected finding |
-| JM (dataset `cirrus-cloud`) | Subscription software | seats | monthly | 2 wrong rate, 6 approved → billed → paid, missed increase |
-| Beyon (dataset `ridgeline-supply`) | Distribution | shipped units | per_event | 3 expired discount, credit outside policy, partial delivery + split invoice, multi-currency |
+| JM (dataset `jm-advisory`) | Professional services | consultant hours, milestones | monthly, milestone | 1 unbilled hours, 4 ambiguous contract term, 5 rejected finding |
+| JM (dataset `jm-subscriptions`) | Subscription software | seats | monthly | 2 wrong rate, 6 approved → billed → paid, missed increase |
+| Beyon (dataset `beyon-distribution`) | Distribution | shipped units | per_event | 3 expired discount, credit outside policy, partial delivery + split invoice, multi-currency |
 
 Two demo orgs carry the three business-type datasets (decision 0005). JM loads two datasets
 through two labelled demo connector sources.

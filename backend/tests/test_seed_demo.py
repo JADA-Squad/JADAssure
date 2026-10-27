@@ -58,16 +58,33 @@ def test_remove_obsolete_only_touches_old_demo_orgs(client, session, capsys):
     from app.domains.access import service as access
 
     real = signup(client, "Real Customer Ltd")
-    old = access.create_organization(session, name="Cirrus Cloud (demo)", business_type="subscription_software",
+    old = access.create_organization(session, name="Old Demo Co (demo)", business_type="subscription_software",
                                      is_demo=True)
     session.commit()
     old_id = old.id
     assert main(["--remove-obsolete"]) == 0
-    assert "Removed obsolete demo orgs: Cirrus Cloud (demo)" in capsys.readouterr().out
+    assert "Removed obsolete demo orgs: Old Demo Co (demo)" in capsys.readouterr().out
     session.expire_all()
     names = set(session.scalars(select(Organization.name)))
     assert names == {"JM", "Beyon", "Real Customer Ltd"}
     assert session.get(Organization, old_id) is None
+    assert client.get("/api/auth/me", headers=real.headers).status_code == 200
+
+
+def test_reset_reseeds_only_the_named_demo_org(client, session, capsys):
+    import pytest
+
+    main([])
+    jm, beyon = (session.scalar(select(Organization.id).where(Organization.name == n)) for n in ("JM", "Beyon"))
+    real = signup(client, "Real Customer Ltd")
+    assert main(["--reset", "JM"]) == 0
+    assert "Reset demo orgs: JM" in capsys.readouterr().out
+    session.expire_all()
+    new_jm = session.scalar(select(Organization.id).where(Organization.name == "JM"))
+    assert new_jm != jm  # JM recreated from scratch
+    assert session.scalar(select(Organization.id).where(Organization.name == "Beyon")) == beyon  # untouched
+    with pytest.raises(SystemExit):
+        main(["--reset", "Real Customer Ltd"])
     assert client.get("/api/auth/me", headers=real.headers).status_code == 200
 
 

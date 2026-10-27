@@ -89,11 +89,11 @@ class Dataset:
                     w.writerow({k: ("" if row.get(k) is None else row.get(k, "")) for k in HEADERS[record_type]})
 
 
-# ------------------------------------------------------------------------- Northwind Advisory
+# ------------------------------------------------------------------------- JM: advisory services
 # Professional services: consultant hours billed monthly; milestone fees.
 
-def northwind() -> Dataset:
-    d = Dataset("northwind-advisory")
+def jm_advisory() -> Dataset:
+    d = Dataset("jm-advisory")
     d.add("customer", customer_id="NW-C1", name="Halcyon Retail Group", currency="USD")
     d.add("customer", customer_id="NW-C2", name="Orchard Health Partners", currency="USD")
     d.add("agreement", agreement_id="NW-A1", customer_id="NW-C1", title="Transformation advisory MSA",
@@ -171,11 +171,11 @@ def northwind() -> Dataset:
     return d
 
 
-# ------------------------------------------------------------------------- Cirrus Cloud
+# ------------------------------------------------------------------------- JM: platform subscriptions
 # Subscription software: seats billed monthly in advance; renewal with a 5% escalation.
 
-def cirrus() -> Dataset:
-    d = Dataset("cirrus-cloud")
+def jm_subscriptions() -> Dataset:
+    d = Dataset("jm-subscriptions")
     d.add("customer", customer_id="CC-C1", name="Bluefin Logistics", currency="USD")
     d.add("customer", customer_id="CC-C2", name="Northgate Media", currency="USD")
     for aid, cid, title in (("CC-A1", "CC-C1", "Platform subscription"), ("CC-A2", "CC-C2", "Platform subscription")):
@@ -222,11 +222,11 @@ def cirrus() -> Dataset:
     return d
 
 
-# ------------------------------------------------------------------------- Ridgeline Supply
+# ------------------------------------------------------------------------- Beyon: distribution
 # Distribution: shipments billed per event; promo discount; credit policy; two currencies.
 
-def ridgeline() -> Dataset:
-    d = Dataset("ridgeline-supply")
+def beyon_distribution() -> Dataset:
+    d = Dataset("beyon-distribution")
     d.add("customer", customer_id="RS-C1", name="Corbel Hardware", currency="USD")
     d.add("customer", customer_id="RS-C2", name="Maple Fixtures", currency="CAD")
     d.add("agreement", agreement_id="RS-A1", customer_id="RS-C1", title="Supply agreement", start_date=date(2026, 1, 1),
@@ -307,9 +307,9 @@ def ridgeline() -> Dataset:
     return d
 
 
-def ridgeline_manual_upload() -> None:
+def beyon_manual_upload() -> None:
     """A messy export for the manual-upload exercise: non-canonical headers and one bad row."""
-    out = ROOT / "ridgeline-supply" / "manual"
+    out = ROOT / "beyon-distribution" / "manual"
     out.mkdir(parents=True, exist_ok=True)
     rows = [
         ["Shipment Ref", "Account", "Contract", "SKU", "Qty", "Ship Date", "Bill By", "Currency"],
@@ -322,7 +322,7 @@ def ridgeline_manual_upload() -> None:
 
 
 if __name__ == "__main__":
-    for dataset in (northwind(), cirrus(), ridgeline()):
+    for dataset in (jm_advisory(), jm_subscriptions(), beyon_distribution()):
         dataset.write()
-    ridgeline_manual_upload()
+    beyon_manual_upload()
     print("demo data written to", ROOT)

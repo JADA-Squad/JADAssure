@@ -9,7 +9,7 @@ from app.domains.ingestion.models import InvoiceLine
 from tests.factories import add_user, signup
 
 
-def _demo_source(client, admin, dataset="cirrus-cloud"):
+def _demo_source(client, admin, dataset="jm-subscriptions"):
     res = client.post("/api/data-sources/connector", headers=admin.headers,
                       json={"name": "Demo connector", "connector_key": "demo", "config": {"dataset": dataset}})
     assert res.status_code == 201, res.text
@@ -21,7 +21,7 @@ def test_connector_catalogue_marks_demo(client):
     catalogue = client.get("/api/connectors", headers=admin.headers).json()
     demo = next(c for c in catalogue if c["key"] == "demo")
     assert demo["is_demo"] is True and "DEMO" in demo["label"]
-    assert {"northwind-advisory", "cirrus-cloud", "ridgeline-supply"} <= set(demo["options"]["dataset"])
+    assert {"jm-advisory", "jm-subscriptions", "beyon-distribution"} <= set(demo["options"]["dataset"])
 
 
 def test_every_connector_satisfies_the_interface():

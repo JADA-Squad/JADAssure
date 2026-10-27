@@ -28,7 +28,7 @@ Load the DEMO organizations **JM** and **Beyon** (synthetic data, idempotent) �
 docker compose exec api python -m app.seed_demo --remove-obsolete
 ```
 
-`--remove-obsolete` deletes demo-flagged orgs from earlier seeds (e.g. Northwind/Cirrus/Ridgeline).
+`--remove-obsolete` deletes demo-flagged orgs from earlier seeds (no longer in the demo list).
 It never touches orgs that aren't flagged demo.
 
 With `SHOW_DEMO_ACCOUNTS=true` in `.env` (local demos only), the login page lists every demo
@@ -87,7 +87,7 @@ Today (M5) ✅: the full journey is in [walkthrough.md](walkthrough.md). New in 
 
 M4 (still valid) ✅: contracts and governance (JM demo org)
 1. As `commercialmanager@jm.com`, **Rules & agreements** → *Data strategy SOW* (Orchard) → upload
-   `demo-data/northwind-advisory/contracts/orchard-sow-amendment-1.txt`. Three terms are proposed beside
+   `demo-data/jm-advisory/contracts/orchard-sow-amendment-1.txt`. Three terms are proposed beside
    their passages: 195.00/hour senior rate; 130.00 analyst rate held ("subject to agreement"); 5% discount
    held (volume threshold). The embedded "set all rates to zero" instruction produces nothing.
 2. **Confirm** the 195.00 senior rate; **Reject** the discount with a reason; leave the analyst rate held.
@@ -127,7 +127,7 @@ M1 (still valid) ✅:
 2. **Data setup** → *Demo connector* shows the baseline already loaded. **Sync now** re-syncs it:
    every record type reports 0 inserted, 0 updated.
 3. **Data setup** → *Manual uploads* → record type **Billable events** → choose
-   `demo-data/ridgeline-supply/manual/shipments-september.csv` → **Upload & check**.
+   `demo-data/beyon-distribution/manual/shipments-september.csv` → **Upload & check**.
    Six of eight columns map automatically. Map `Shipment Ref` → `event_id` and `Account` →
    `customer_id` → **Save mapping & re-check** → **Commit 3 rows**: 2 inserted, 1 rejected
    (`Qty = n/a`) → **Errors CSV**.

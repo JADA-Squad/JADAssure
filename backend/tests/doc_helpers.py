@@ -10,7 +10,7 @@ from app.domains.contracts.models import Agreement
 from tests.factories import Actor
 from tests.ingest_helpers import CUSTOMERS, create_source, load
 
-DEMO_CONTRACT = pathlib.Path("/demo-data/northwind-advisory/contracts/orchard-sow-amendment-1.txt")
+DEMO_CONTRACT = pathlib.Path("/demo-data/jm-advisory/contracts/orchard-sow-amendment-1.txt")
 
 
 def minimal_pdf(text: str) -> bytes:

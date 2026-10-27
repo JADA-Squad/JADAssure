@@ -1,6 +1,6 @@
 """Seed the two DEMO organizations, JM and Beyon (DATA-001, decision 0005).
 
-    docker compose exec api python -m app.seed_demo [--remove-obsolete]
+    docker compose exec api python -m app.seed_demo [--remove-obsolete] [--reset JM [--reset Beyon]]
 
 Each demo org (flagged is_demo) gets one user per role, one demonstration-connector data source
 per dataset loaded with that dataset's baseline files, and an empty "Manual uploads" CSV source.
@@ -9,8 +9,9 @@ distribution. Together they still cover all three business types (FR-42).
 
 Idempotent: an org that already exists is left as is, except that its demo users' passwords are
 reset to DEMO_PASSWORD if that constant changed. With --remove-obsolete, demo-flagged
-orgs that are no longer in DEMO_ORGS (e.g. the earlier Northwind/Cirrus/Ridgeline demo orgs) are
-deleted first. Orgs that aren't flagged is_demo are never touched.
+orgs that are no longer in DEMO_ORGS (e.g. demo orgs from earlier seeds) are
+deleted first. With --reset <name>, that demo org is deleted and seeded again from scratch, e.g.
+before a presentation. Orgs that aren't flagged is_demo are never touched.
 
 All data is synthetic (demo-data/README.md). The shared DEMO_PASSWORD below exists only so demos
 can sign in. It's listed on the login page only when SHOW_DEMO_ACCOUNTS=true.
@@ -54,11 +55,11 @@ class DemoOrg:
 
 DEMO_ORGS = (
     DemoOrg("JM", "professional_services", "jm.com", (
-        DemoDataset("northwind-advisory", "Demo connector: advisory services"),
-        DemoDataset("cirrus-cloud", "Demo connector: platform subscriptions"),
+        DemoDataset("jm-advisory", "Demo connector: advisory services"),
+        DemoDataset("jm-subscriptions", "Demo connector: platform subscriptions"),
     )),
     DemoOrg("Beyon", "distribution", "beyon.com", (
-        DemoDataset("ridgeline-supply", "Demo connector: distribution"),
+        DemoDataset("beyon-distribution", "Demo connector: distribution"),
     )),
 )
 
@@ -77,17 +78,37 @@ def demo_email(role: str, domain: str) -> str:
     return f"{DEMO_USERS[role][0]}@{domain}"
 
 
+def _delete_demo_org(session: Session, org: Organization) -> None:
+    # audit_event deliberately has no cascade (FR-41 tombstones); synthetic demo history goes too.
+    session.execute(delete(AuditEvent).where(AuditEvent.org_id == org.id))
+    session.delete(org)  # every other tenant table cascades on org_id
+
+
 def remove_obsolete_demo_orgs(session: Session) -> list[str]:
     """Delete demo-flagged orgs that are no longer part of DEMO_ORGS. Never touches non-demo orgs."""
     current = {o.name for o in DEMO_ORGS}
     obsolete = [o for o in session.scalars(select(Organization).where(Organization.is_demo.is_(True)))
                 if o.name not in current]
     for org in obsolete:
-        # audit_event deliberately has no cascade (FR-41 tombstones); synthetic demo history goes too.
-        session.execute(delete(AuditEvent).where(AuditEvent.org_id == org.id))
-        session.delete(org)  # every other tenant table cascades on org_id
+        _delete_demo_org(session, org)
     session.flush()
     return [o.name for o in obsolete]
+
+
+def reset_demo_orgs(session: Session, names: list[str]) -> list[str]:
+    """Delete the named demo orgs so they are seeded fresh. Refuses unknown or non-demo orgs."""
+    known = {o.name for o in DEMO_ORGS}
+    unknown = [n for n in names if n not in known]
+    if unknown:
+        raise SystemExit(f"--reset accepts only demo orgs ({', '.join(sorted(known))}), not: {', '.join(unknown)}")
+    removed = []
+    for org in session.scalars(select(Organization).where(Organization.name.in_(names))):
+        if not org.is_demo:
+            raise SystemExit(f"{org.name} is not flagged as demo; refusing to reset it")
+        _delete_demo_org(session, org)
+        removed.append(org.name)
+    session.flush()
+    return removed
 
 
 def sync_demo_passwords(session: Session, org: Organization) -> int:
@@ -135,7 +156,12 @@ def seed_org(session: Session, spec: DemoOrg) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
+    resets = [args[i + 1] for i, a in enumerate(args[:-1]) if a == "--reset"]
     with new_session() as session:
+        if resets:
+            reset = reset_demo_orgs(session, resets)
+            session.commit()
+            print(f"Reset demo orgs: {', '.join(reset) or 'none present'}")
         if "--remove-obsolete" in args:
             removed = remove_obsolete_demo_orgs(session)
             session.commit()

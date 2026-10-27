@@ -15,7 +15,7 @@ from tests.engine_helpers import findings, run
 AS_OF = date(2026, 10, 26)
 
 EXPECTED = {
-    # JM carries the professional-services (Northwind) and subscription (Cirrus) datasets.
+    # JM carries the professional-services (jm-advisory) and subscription (jm-subscriptions) datasets.
     "JM": sorted([
         ("delivered_not_billed", "SENIOR-CONSULT", "2026-04-01", Decimal("2160"), "USD"),
         ("delivered_not_billed", "ANALYST", "2026-06-01", Decimal("960"), "USD"),
@@ -24,7 +24,7 @@ EXPECTED = {
         ("missed_increase", "PLATFORM-SEAT", "2026-08-01", Decimal("270"), "USD"),
         ("missed_increase", "PLATFORM-SEAT", "2026-09-01", Decimal("270"), "USD"),
     ]),
-    # Beyon carries the distribution (Ridgeline) dataset.
+    # Beyon carries the distribution (beyon-distribution) dataset.
     "Beyon": sorted([
         ("expired_discount", "WIDGET-A", "2026-04-14", Decimal("375"), "USD"),
         ("expired_discount", "WIDGET-A", "2026-05-20", Decimal("187.5"), "USD"),
