@@ -70,6 +70,6 @@ def finding_facts(f: Any) -> dict[str, Any]:
     return {
         "check_label": labels.get(f.check_type, f.check_type),
         "customer": ((f.evidence or {}).get("customer") or {}).get("name", "the customer"),
-        "reason": f.reason, "value": format(f.value.normalize(), "f"), "currency": f.currency,
+        "reason": f.reason, "value": f"{f.value:,.2f}", "currency": f.currency,
         "confidence": f.confidence, "recommended_action": f.recommended_action, "status": f.status,
     }

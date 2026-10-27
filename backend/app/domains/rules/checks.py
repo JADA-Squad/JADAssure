@@ -57,6 +57,11 @@ class CheckContext:
         self.skipped[reason] = self.skipped.get(reason, 0) + 1
 
 
+def _plural(unit: str, qty: Decimal) -> str:
+    """'hour' -> 'hours' unless the quantity is exactly 1 (display text only)."""
+    return unit if qty == 1 or unit.endswith("s") else f"{unit}s"
+
+
 def _fmt(d: Decimal) -> str:
     return s(d)
 
@@ -101,7 +106,8 @@ def delivered_not_billed(ctx: CheckContext, b: Bucket) -> Candidate | None:
     return Candidate(
         family="unbilled", anchor_type="bucket", anchor_id=b.anchor(), check_type="delivered_not_billed",
         value=value, currency=b.currency, confidence="medium" if b.inferred else "high",
-        reason=(f"{_fmt(missing)} {unit} of {b.item_code} delivered in {period} were not invoiced "
+        reason=(f"{_fmt(missing)} {_plural(unit, missing)} of {b.item_code} delivered in {period} "
+                f"{'was' if missing == 1 else 'were'} not invoiced "
                 f"({_fmt(b.delivered)} delivered, {_fmt(b.billed)} billed) by {due.isoformat()}."),
         recommended_action=("Confirm the delivery records with the delivery owner, then raise a supplementary invoice "
                             "for the unbilled quantity at the contracted rate."),

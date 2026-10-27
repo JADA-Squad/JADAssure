@@ -62,7 +62,7 @@ def test_unbilled_respects_grace_then_values_shortfall(client, session):
     assert [e["source_record_id"] for e in f.evidence["delivered"]] == ["E1", "E2"]
     assert [b["source_record_id"] for b in f.evidence["billed"]] == ["L1"]
     assert f.evidence["terms"][0]["source_record_id"] == "T1"
-    assert "12 hour of HOURS delivered in April 2026" in f.reason
+    assert "12 hours of HOURS delivered in April 2026 were not invoiced" in f.reason
     assert f.first_run_id == r.id and f.period_start == date(2026, 4, 1)
 
 
