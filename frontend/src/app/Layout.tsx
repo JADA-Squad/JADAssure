@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
 import { NAV_AREAS, ROLE_LABELS } from "./nav";
 import { Brand } from "../components/Brand";
+import { AssistantPanel } from "../features/assistant/AssistantPanel";
 
 export function Layout() {
   const { session, logout } = useAuth();
@@ -47,6 +48,7 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+      <AssistantPanel role={user.role} />
     </div>
   );
 }

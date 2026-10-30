@@ -8,8 +8,8 @@ AI_FREE_DOMAINS = ["matching", "rules", "cases", "recovery", "reporting"]
 FORBIDDEN = "app.domains.ai"
 
 
-def ai_imports(source: str, module_package: str) -> list[str]:
-    """Return every import in `source` that resolves to the ai domain."""
+def ai_imports(source: str, module_package: str, forbidden: str = FORBIDDEN) -> list[str]:
+    """Return every import in `source` that resolves to the `forbidden` package (default: the ai domain)."""
     found = []
     for node in ast.walk(ast.parse(source)):
         if isinstance(node, ast.Import):
@@ -23,7 +23,7 @@ def ai_imports(source: str, module_package: str) -> list[str]:
             names = [mod] + [f"{mod}.{alias.name}" for alias in node.names]
         else:
             continue
-        found += [n for n in names if n == FORBIDDEN or n.startswith(FORBIDDEN + ".")]
+        found += [n for n in names if n == forbidden or n.startswith(forbidden + ".")]
     return found
 
 
@@ -42,5 +42,16 @@ def test_engine_domains_do_not_import_ai():
         for path in (DOMAINS_DIR / domain).rglob("*.py"):
             package = "app.domains." + ".".join(path.relative_to(DOMAINS_DIR).with_suffix("").parts[:-1])
             for name in ai_imports(path.read_text(encoding="utf-8"), package):
+                violations.append(f"{path.relative_to(DOMAINS_DIR)} imports {name}")
+    assert violations == []
+
+
+def test_engine_domains_do_not_import_the_assistant():
+    """Decision 0009 D-7: the assistant may call the engine; the engine never depends on the assistant."""
+    violations = []
+    for domain in AI_FREE_DOMAINS:
+        for path in (DOMAINS_DIR / domain).rglob("*.py"):
+            package = "app.domains." + ".".join(path.relative_to(DOMAINS_DIR).with_suffix("").parts[:-1])
+            for name in ai_imports(path.read_text(encoding="utf-8"), package, "app.domains.assistant"):
                 violations.append(f"{path.relative_to(DOMAINS_DIR)} imports {name}")
     assert violations == []

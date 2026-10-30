@@ -347,6 +347,7 @@ ai/
 | Approve / send back / write off | | | ✓ | | |
 | Export corrections, recovery tracker | | ✓ | ✓ | | ✓ (read) |
 | Overview & reports, pricing opportunities | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Use the assistant (only its own role's actions, each confirmed) | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Audit history | ✓ | | ✓ | | |
 
   Administrators don't touch findings, which keeps platform administration separate from

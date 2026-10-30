@@ -2,6 +2,7 @@
 
 import app.core.models  # noqa: F401
 import app.domains.access.models  # noqa: F401
+import app.domains.assistant.models  # noqa: F401
 import app.domains.audit.models  # noqa: F401
 import app.domains.cases.models  # noqa: F401
 import app.domains.contracts.models  # noqa: F401

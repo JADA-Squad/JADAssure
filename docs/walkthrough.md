@@ -128,7 +128,7 @@ Sign in as `admin@jm.com` → **Access & settings**:
 
 - **Users & roles**: add a user, change a role, deactivate, and **Edit** to correct a mistyped
   name or email (the user then signs in with the corrected email).
-- **Contract term reading**: external AI (Claude) is off by default and needs an API key in the
+- **AI provider**: external AI (Claude) is off by default and needs an API key in the
   server config. The built-in offline reader is used otherwise.
 - **Scheduled runs**, **retention** and **pricing target margin**.
 - **Audit history** → **Verify chain**: every state change is in a hash-chained log. Verification
@@ -140,3 +140,23 @@ Sign in as `admin@jm.com` → **Access & settings**:
 Sign in as `financeanalyst@beyon.com` and paste a JM finding's URL: *not found*. The API answers
 404, never 403, so it doesn't reveal that the record exists. Approving or simulating on another
 org's records fails the same way.
+
+## 10. The assistant (agentic AI)
+
+Needs Claude: an API key on the server and the admin's opt-in (see RUNNING.md). Click
+**Assistant** (bottom right) on any screen.
+
+1. As `financeanalyst@jm.com`, ask "What are my highest-value open findings?". The assistant looks
+   them up ("Looked up findings") and answers with the real values.
+2. Ask "Propose the Bluefin wrong-rate finding: the March price book wasn't updated." It prepares a
+   card: *Take ownership of and propose finding 600.00 USD … Root cause: price not updated*.
+   Nothing has changed yet.
+3. Click **Confirm**. The card shows **Done**, and the finding is now *Proposed*, exactly as if
+   you'd used the finding page. **Cancel** would have changed nothing.
+4. Ask it to approve: it can't. The analyst role has no approve tool, and separation of duties
+   still applies. As `financeapprover@jm.com`, the assistant can prepare the approval, which shows
+   a financial-decision warning and again runs only on **Confirm**.
+5. As `executive@jm.com`, ask "How much have we recovered?". It reads the overview figures; it has
+   no tools that change anything.
+
+Every prepared, confirmed and cancelled action is in the audit history.

@@ -211,6 +211,14 @@ All imports are untrusted input (GR-07) and are validated at the boundary.
 | FR-39 | The system suggests column-to-field mappings for an import; the administrator must accept them. | Auto |
 | FR-40 | A finding can show an AI-generated plain-language summary, clearly labelled as AI-generated and not used in any calculation. | Auto |
 
+### Agentic assistance (proposals and confirmed actions)
+| ID | Requirement | Verify |
+|---|---|---|
+| FR-43 | Any signed-in user can chat with an assistant that looks things up and prepares actions using only the tools their role permits. Each prepared change runs only after that user confirms it, with their own permissions, and is audited as done via the assistant. | Auto |
+| FR-44 | An investigation agent gathers the records behind a finding and drafts a root cause and approver note for the analyst to accept or edit. | Auto |
+| FR-45 | After a check run, a triage agent groups related findings, flags likely false alarms and suggests a review order. Suggestions only. | Auto |
+| FR-46 | An onboarding agent profiles a new source's files, proposes mappings, test-imports and iterates on errors, then hands the administrator a ready-to-commit import. | Auto |
+
 ### Data lifecycle and demo
 | ID | Requirement | Verify |
 |---|---|---|
@@ -237,6 +245,7 @@ All imports are untrusted input (GR-07) and are validated at the boundary.
 | GR-14 | Demo data and the demonstration connector are never presented as live customer integrations. |
 | GR-15 | Credentials and secrets are never hard-coded or committed; only `.env.example` templates are committed. Sensitive content is never logged. |
 | GR-16 | Every finding is traceable to the term/clause, delivery records, invoice lines (or credit), rule version and calculation that produced it. |
+| GR-17 | An AI agent never changes data on its own. It can only prepare an action within the signed-in user's role; the change happens only when that user explicitly confirms it, and is re-checked against their permissions and the record's state at that moment. |
 
 ## 10. Non-functional requirements
 

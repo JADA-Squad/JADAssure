@@ -2,21 +2,22 @@
 
 ## ⏵ Resume here
 
-*Updated 2026-10-26, end of session 9.*
+*Updated 2026-10-30, end of session 10.*
 
-- **All 48 tasks are Built.** Nothing is Done until the owner promotes it after their own test.
-- **Owner checkpoints pending:** M0–M5. For M5, run `docker compose exec api pytest -m acceptance`
-  (all eight scenarios, under a minute) and follow `docs/walkthrough.md` end to end.
-- **Built in M5:** BE-024 (recurrence + prevented-recurrence estimate), BE-026 + FE-008 (pricing
-  opportunities), BE-031 (AI mapping suggestions + labelled finding summaries), QA-001, DOC-001.
-  The agent checked in a browser: Beyon pricing shows 2 opportunities (Corbel 1,957.50 USD, Maple
-  350.00 CAD), JM shows "no cost data"; Suggest mappings on the Beyon manual upload proposes
-  `Account → customer_id` and `Shipment Ref → event_id`; Generate summary shows a labelled summary;
-  Overview shows prevented recurrence 3,600.00 USD after the 600 correction.
-- **Known gap:** the stock demo data has no later period that repeats a confirmed issue, so the
-  Recurring issue notice is only shown by `tests/test_recurrence.py`, not in the demo UI.
+- **Agentic AI started (decision 0009).** BE-034 + FE-010 are Built: an Assistant panel on every
+  screen. Claude looks things up with tools limited to the user's role; every change it suggests is
+  a card that runs only on the user's Confirm, re-checked against their role and the record's state
+  (new guardrail GR-17). Since BE-031, BE-033 (user name/email correction) is also Built.
+- **To try it:** add `ANTHROPIC_API_KEY` to `.env`, `docker compose up -d`, then as admin choose
+  Claude in Access & settings (RUNNING.md). Without a key the panel explains what's needed.
+  Browser-checked without a key: prepared-action card rendered, confirmed, overview refreshed.
+  The full Claude loop is covered by `tests/test_assistant.py` with a scripted model, but has not
+  yet run against the real API.
+- **Owner checkpoints pending:** M0–M5, plus BE-033, BE-034, FE-010. Nothing is Done until the owner
+  promotes it.
 - **Live site:** Render Blueprint still to be applied by the owner (docs/deployment.md).
-- **Exact next action:** owner checkpoints and Done promotions. No agent task remains on the board.
+- **Exact next action (agent):** BE-035 investigation agent, then BE-036 triage agent, then BE-037
+  onboarding agent, each on the prepared-action pattern.
 
 ## Handoff protocol
 
@@ -101,3 +102,4 @@ flowchart LR
 | 2026-10-26 | 7 | M3: workflow per design §2.5 with row locks, separation of duties and server-computed available actions; terminal-state immutability trigger; root-cause categories; prepared corrections (JA-<org>-0001) with CSV/JSON export; recovery reconcile (billed from referenced invoices, cash only from allocations to them, capped, idempotent) queued after imports; DEMO-only billing/payment simulation; six outcome figures + trend + root causes API; finding actions panel, Recovery tracker and Overview (emphasis chart after palette validation rejected orange+black). Fixes: same-transaction timeline order (clock_timestamp), Postgres GROUP BY with bound to_char format, missing accessible names on action forms. Decision 0006. |
 | 2026-10-26 | 8 | M4: contract upload (PDF/DOCX/TXT, signature checks, sha256, DocumentStore, text extraction); AI provider interface with offline stub default and Claude adapter (claude-opus-5-5, structured output, fallbacks) behind an audited opt-in + key; proposed-term extraction with verbatim-passage verification and ambiguity flags; confirm/edit/reject with audit; settings (schedule, provider, retention purge) and org data deletion with tombstone; Rules & agreements and Access & settings screens; Orchard demo hours for scenario 4. Fixes: alembic constraint double-prefix, transient Windows file lock during scripted edits (retry), stale container env for ANTHROPIC_MODEL (recreate, not restart), users table overflow. Decision 0007. |
 | 2026-10-26 | 9 | M5: recurrence flagged at check-run time and a prevented-recurrence estimate on Overview; pricing opportunities from confirmed contract price vs cost with a configurable target margin; AI mapping suggestions (deterministic value evidence first, provider second, filtered, never auto-applied) and labelled, audited finding summaries; QA-001 acceptance test for all eight scenarios with NFR-04 timing; docs/walkthrough.md. Fixes found in the browser: two quick Apply clicks lost one mapping (stale state, now functional updates); after sign-out the next user landed on the previous user's page; unit prices shown as 12.5. Decision 0008. |
+| 2026-10-30 | 10 | Agentic assistant (BE-034, FE-010): role-scoped tool registry over the existing services, bounded Claude tool-use loop via `AnthropicProvider.converse`, write tools that only prepare `assistant_action` rows, confirm/cancel endpoints that re-check role and state in a savepoint, audited without chat text; panel with action cards on every screen. FR-43–FR-46, GR-17, decision 0009, migration 0006; engine domains barred from importing `assistant`. Roadmap rows BE-035–BE-037 in Backlog. Earlier in the session: BE-033 user name/email correction, demo renames to JM/Beyon, seed `--reset`, JM demo script. |
