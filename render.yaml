@@ -29,7 +29,7 @@ services:
       # One service runs API, worker loop and the React app (no free background workers on Render).
       - key: EMBEDDED_WORKER
         value: "true"
-      # Loads the three synthetic DEMO orgs on first start; idempotent on later deploys.
+      # Loads the two synthetic DEMO orgs (JM, Beyon) on first start; idempotent on later deploys.
       - key: SEED_DEMO_ON_START
         value: "true"
       # Public URL: never list demo logins/passwords, and don't let strangers create orgs (decision 0002 D-7).
@@ -39,3 +39,11 @@ services:
         value: "false"
       - key: LOG_LEVEL
         value: INFO
+      # External AI (decisions 0007, 0010). Keys are secrets: enter them in the Render dashboard, never in git.
+      # Each org stays on the offline reader until its admin picks a provider in Access & settings.
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-6.1-sol
+      - key: ANTHROPIC_API_KEY
+        sync: false

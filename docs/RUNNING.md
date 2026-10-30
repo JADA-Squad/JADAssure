@@ -73,6 +73,21 @@ Optional: `POSTGRES_HOST_PORT` (default 5433), `JWT_EXPIRES_MINUTES` (default 48
 `ALLOW_SIGNUP` (default true), `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` (default `claude-opus-5-5`). Even with an API key set,
 each org stays on the offline stub until its admin enables the provider (GR-08, M4).
 
+**Turning on the assistant (BE-034).** The Assistant button on every screen needs an external AI
+provider, Claude or OpenAI (decision 0010):
+1. Put your key in `.env` as `OPENAI_API_KEY=...` or `ANTHROPIC_API_KEY=...` (optionally `OPENAI_MODEL` /
+   `ANTHROPIC_MODEL`).
+2. Recreate the containers so they read it (a plain restart isn't enough):
+   ```bash
+   docker compose up -d
+   ```
+3. As the org's admin, **Access & settings** → **AI provider** → **OpenAI** or **Claude**.
+   This is audited, and it switches contract reading, mapping suggestions, summaries and the
+   assistant to that provider for that org only. Switch back to the offline reader at any time.
+
+Then open **Assistant** as any user. It looks things up freely, but every change it suggests
+appears as a card that runs only when you click **Confirm**.
+
 ## The happy path
 
 Today (M5) ✅: the full journey is in [walkthrough.md](walkthrough.md). New in M5:

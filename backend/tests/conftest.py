@@ -47,6 +47,13 @@ def temp_document_store(tmp_path_factory) -> Iterator[None]:
 
 
 @pytest.fixture(autouse=True)
+def no_external_ai(monkeypatch) -> None:
+    """Tests never call a real model, whatever keys .env holds: a test that needs a provider sets one."""
+    monkeypatch.setattr(get_settings(), "anthropic_api_key", "")
+    monkeypatch.setattr(get_settings(), "openai_api_key", "")
+
+
+@pytest.fixture(autouse=True)
 def clean_tables(test_database: str) -> Iterator[None]:
     yield
     engine = db.get_engine()

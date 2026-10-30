@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 from app.core.storage import get_store
 from app.core.tenancy import TenantContext
 from app.domains.access.models import Organization
-from app.domains.ai.registry import external_available
+from app.domains.ai.registry import EXTERNAL, configured, configured_external
 from app.domains.audit import service as audit
 from app.domains.audit.models import AuditEvent
 from app.domains.contracts.models import Document
@@ -34,15 +34,16 @@ class SettingsOut(BaseModel):
     short_code: str
     is_demo: bool
     refresh_interval_minutes: int
-    ai_provider: Literal["stub", "anthropic"]
-    ai_external_available: bool  # is an external provider configured on this server?
+    ai_provider: Literal["stub", "anthropic", "openai"]
+    ai_external_available: bool  # is any external provider configured on this server?
+    ai_available_providers: list[str]  # external providers with a key on this server (decision 0010)
     retention_days: int | None
     pricing_target_margin_pct: Decimal
 
 
 class SettingsIn(BaseModel):
     refresh_interval_minutes: int | None = Field(default=None, ge=0, le=10080)
-    ai_provider: Literal["stub", "anthropic"] | None = None
+    ai_provider: Literal["stub", "anthropic", "openai"] | None = None
     retention_days: int | None = Field(default=None, ge=30, le=3650)
     clear_retention: bool = False
     pricing_target_margin_pct: Decimal | None = Field(default=None, ge=0, le=90)
@@ -53,7 +54,8 @@ def read(org: Organization) -> SettingsOut:
     return SettingsOut(
         organization_name=org.name, short_code=org.short_code, is_demo=org.is_demo,
         refresh_interval_minutes=int(s.get("refresh_interval_minutes") or 0),
-        ai_provider=s.get("ai_provider", "stub"), ai_external_available=external_available(),
+        ai_provider=s.get("ai_provider", "stub"), ai_external_available=bool(configured_external()),
+        ai_available_providers=configured_external(),
         retention_days=s.get("retention_days"),
         pricing_target_margin_pct=Decimal(str(s.get("pricing_target_margin_pct", "20"))),
     )
@@ -67,9 +69,10 @@ def update(session: Session, ctx: TenantContext, data: SettingsIn) -> SettingsOu
     if data.refresh_interval_minutes is not None:
         changes["refresh_interval_minutes"] = data.refresh_interval_minutes
     if data.ai_provider is not None:
-        if data.ai_provider == "anthropic" and not external_available():
+        if data.ai_provider in EXTERNAL and not configured(data.ai_provider):
+            label, env = EXTERNAL[data.ai_provider]
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
-                                "No external AI provider is configured on this server (ANTHROPIC_API_KEY is unset)")
+                                f"{label} isn't configured on this server ({env} is unset)")
         changes["ai_provider"] = data.ai_provider
     if data.clear_retention:
         changes["retention_days"] = None
@@ -85,7 +88,7 @@ def update(session: Session, ctx: TenantContext, data: SettingsIn) -> SettingsOu
         if "ai_provider" in changes:
             # GR-08: the opt-in (or opt-out) for sending document text to an external model is its own event.
             audit.record(session, org_id=org.id, actor_id=ctx.user_id,
-                         action="ai.external_provider_enabled" if changes["ai_provider"] == "anthropic"
+                         action="ai.external_provider_enabled" if changes["ai_provider"] in EXTERNAL
                          else "ai.external_provider_disabled", entity="organization", entity_id=org.id,
                          payload={"provider": changes["ai_provider"]})
     return read(org)

@@ -6,6 +6,9 @@
 - `stub.py`: offline deterministic reader, the default (nothing leaves JADAssure, GR-08).
 - `anthropic_provider.py`: Claude adapter (`anthropic` SDK 2.x, `claude-opus-5-5`, JSON-schema
   output, server-side fallbacks, refusal / max_tokens handling, document delimited as untrusted).
+- `openai_provider.py`: OpenAI adapter (decision 0010): the same methods and safeguards; structured
+  outputs for extraction and mappings; `converse` translates the assistant's Claude-style history to
+  Chat Completions and back, so the agent loop is unchanged.
 - `registry.py`: `provider_for(org.settings)`. "anthropic" applies only after an audited opt-in
   AND with `ANTHROPIC_API_KEY` set; otherwise the stub.
 - `assist.py` + `router.py` (BE-031): `GET /api/imports/{id}/mapping-suggestions` (deterministic

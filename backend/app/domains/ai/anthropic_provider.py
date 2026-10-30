@@ -9,6 +9,7 @@ before the engine sees it.
 """
 
 import json
+from typing import Any
 
 import anthropic
 
@@ -82,24 +83,35 @@ class AnthropicProvider:
         except (json.JSONDecodeError, ValueError):
             raise ProviderError("The AI provider's answer didn't match the expected format") from None
 
-    def _call(self, system: str, user: str, output_config: dict, max_tokens: int = 16000) -> str:
+    def _create(self, **params: Any) -> Any:
         try:
-            response = self._client.beta.messages.create(
+            return self._client.beta.messages.create(
                 model=self._model,
-                max_tokens=max_tokens,
-                system=system,
-                messages=[{"role": "user", "content": user}],
-                output_config=output_config,
                 # A safety decline re-runs on Anthropic's recommended fallback instead of failing.
                 betas=["server-side-fallback-2026-07-01"],
                 fallbacks="default",
+                **params,
             )
         except anthropic.RateLimitError:
             raise ProviderError("The AI provider is rate limiting requests; retry later") from None
         except anthropic.APIStatusError as exc:
-            raise ProviderError(f"The AI provider returned an error (HTTP {exc.status_code})") from None
+            # 4xx are setup problems (key, workspace, model access); Anthropic's reason says what to fix.
+            body = exc.body if isinstance(exc.body, dict) else {}
+            reason = str((body.get("error") or {}).get("message") or "")[:300] if exc.status_code < 500 else ""
+            raise ProviderError(f"The AI provider returned an error (HTTP {exc.status_code})"
+                                + (f": {reason}" if reason else "")) from None
         except anthropic.APIConnectionError:
             raise ProviderError("Could not reach the AI provider") from None
+
+    def converse(self, system: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]],
+                 max_tokens: int = 4000) -> Any:
+        """One step of the assistant's tool-use loop (BE-034). Returns the raw message; the caller runs tools."""
+        return self._create(max_tokens=max_tokens, system=system, messages=messages, tools=tools,
+                            output_config={"effort": "medium"})
+
+    def _call(self, system: str, user: str, output_config: dict, max_tokens: int = 16000) -> str:
+        response = self._create(max_tokens=max_tokens, system=system, messages=[{"role": "user", "content": user}],
+                                output_config=output_config)
         if response.stop_reason == "refusal":
             raise ProviderError("The AI provider declined to process this request")
         if response.stop_reason == "max_tokens":

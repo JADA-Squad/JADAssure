@@ -6,13 +6,17 @@ import type { User } from "../../api/types";
 import { ROLE_LABELS, type Role } from "../../app/nav";
 import { useAuth } from "../auth/AuthContext";
 
+type Provider = "stub" | "anthropic" | "openai";
+const PROVIDER_LABELS: Record<Exclude<Provider, "stub">, string> = { anthropic: "Claude (Anthropic)", openai: "OpenAI" };
+
 interface OrgSettings {
   organization_name: string;
   short_code: string;
   is_demo: boolean;
   refresh_interval_minutes: number;
-  ai_provider: "stub" | "anthropic";
+  ai_provider: Provider;
   ai_external_available: boolean;
+  ai_available_providers: Provider[];
   retention_days: number | null;
   pricing_target_margin_pct: string;
 }
@@ -232,7 +236,7 @@ function OrgSettingsCard() {
   const qc = useQueryClient();
   const settings = useQuery({ queryKey: ["settings"], queryFn: () => api<OrgSettings>("/settings") });
   const [interval, setInterval_] = useState("0");
-  const [provider, setProvider] = useState<"stub" | "anthropic">("stub");
+  const [provider, setProvider] = useState<Provider>("stub");
   const [retention, setRetention] = useState("");
   const [margin, setMargin] = useState("20");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -282,12 +286,14 @@ function OrgSettingsCard() {
           </select>
         </label>
         <label className="field">
-          <span>Contract term reading</span>
-          <select value={provider} onChange={(e) => setProvider(e.target.value as "stub" | "anthropic")}>
+          <span>AI provider</span>
+          <select value={provider} onChange={(e) => setProvider(e.target.value as Provider)}>
             <option value="stub">Offline reader (nothing leaves JADAssure)</option>
-            <option value="anthropic" disabled={!s.ai_external_available}>
-              Claude (external AI){s.ai_external_available ? "" : " · not configured on this server"}
-            </option>
+            {(["anthropic", "openai"] as const).map((p) => (
+              <option key={p} value={p} disabled={!s.ai_available_providers.includes(p)}>
+                {PROVIDER_LABELS[p]} (external AI){s.ai_available_providers.includes(p) ? "" : " · not configured on this server"}
+              </option>
+            ))}
           </select>
         </label>
         <label className="field">
@@ -304,10 +310,12 @@ function OrgSettingsCard() {
           />
         </label>
       </div>
-      {provider === "anthropic" && s.ai_provider !== "anthropic" && (
+      {provider !== "stub" && s.ai_provider !== provider && (
         <div className="notice">
-          Contract text will be sent to an external AI provider to propose terms. Proposals still need a person to confirm
-          them, and no money figure ever comes from AI. This change is recorded in the audit history.
+          This sends your organization's data to {PROVIDER_LABELS[provider]}: contract text to propose terms, column samples to
+          suggest mappings, finding facts for summaries, and whatever the assistant looks up for your users. Everything AI
+          produces stays a proposal or a card someone must confirm, and no money figure ever comes from AI. This change is
+          recorded in the audit history.
         </div>
       )}
       <p className="muted" style={{ margin: 0, fontSize: 12 }}>

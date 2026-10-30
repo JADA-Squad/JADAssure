@@ -28,6 +28,8 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-opus-5-5"
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4.1"
 
     log_level: str = "INFO"
 

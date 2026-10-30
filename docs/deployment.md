@@ -39,7 +39,9 @@ progress under **Events**, and a failed build keeps the previous version live.
 | `SEED_DEMO_ON_START` | `true` | Creates the three synthetic DEMO orgs once (idempotent) |
 | `SHOW_DEMO_ACCOUNTS` | `false` | Never list demo logins and passwords on a public URL (decision 0002 D-7) |
 | `ALLOW_SIGNUP` | `false` | Strangers can't create organizations on the public URL |
-| `ANTHROPIC_API_KEY` | unset | External AI stays unavailable (GR-08). Add as a secret only by decision |
+| `ANTHROPIC_API_KEY` | unset | Claude stays unavailable (GR-08). Add as a secret only by decision |
+| `OPENAI_API_KEY` | unset (secret, prompted by the Blueprint) | OpenAI stays unavailable. Set it in Render → Environment to use the assistant (decision 0010) |
+| `OPENAI_MODEL` | `gpt-6.1-sol` | OpenAI model for every AI feature |
 
 Change values in Render → service → **Environment**. Saving triggers a redeploy.
 

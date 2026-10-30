@@ -128,7 +128,7 @@ top root causes.
 **Sign in:** `admin@jm.com` → **Access & settings**:
 
 - **Users & roles**: five roles, each seeing only what it needs.
-- **Contract term reading**: external AI is off by default and needs an explicit, audited opt-in.
+- **AI provider**: external AI (Claude) is off by default and needs an explicit, audited opt-in.
 - **Audit history** → **Verify chain**: *intact*. Every action above is in a tamper-evident log.
 
 **Isolation:** copy a JM finding URL, sign in as `financeanalyst@beyon.com`, paste it:
